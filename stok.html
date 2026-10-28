@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta name="app-version" content="2026-10-07-02" />
+<title>SmarterERP Lite - Stok</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const saved = localStorage.getItem('smarterp_theme');
+  if (saved === 'light' || saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', saved);
+  }
+})();
+</script>
+<style>
+:root {
+  --primary: #16856b; --primary-dark: #116b56; --bg: #f2f5f2; --card-bg: #ffffff;
+  --text: #1f2937; --text-muted: #6b7280; --border: #dce4df; --danger: #d93025; --success: #188038; --warning: #e8a400;
+  --radius: 10px;
+  --emboss-shadow: 0 5px 12px rgba(17,59,45,.08), inset 0 1px rgba(255,255,255,.92), inset 0 -1px rgba(17,59,45,.04);
+  --emboss-hover-shadow: 0 8px 16px rgba(17,59,45,.12), inset 0 1px rgba(255,255,255,.92), inset 0 -1px rgba(17,59,45,.04);
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg:#15181f; --card-bg:#1f232c; --text:#e8eaed; --text-muted:#9aa0a6; --border:#353a45; }
+}
+:root[data-theme="dark"] { --bg:#15181f; --card-bg:#1f232c; --text:#e8eaed; --text-muted:#9aa0a6; --border:#353a45; }
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100%; font-family: "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --emboss-shadow: 0 5px 14px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.05), inset 0 -1px rgba(0,0,0,.2); --emboss-hover-shadow: 0 8px 18px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.06), inset 0 -1px rgba(0,0,0,.24); } }
+:root[data-theme="dark"] { --emboss-shadow: 0 5px 14px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.05), inset 0 -1px rgba(0,0,0,.2); --emboss-hover-shadow: 0 8px 18px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.06), inset 0 -1px rgba(0,0,0,.24); }
+.list-item, .modal-box { box-shadow: var(--emboss-shadow); transition: box-shadow .18s ease, transform .18s ease; }
+.list-item:hover { transform: translateY(-1px); box-shadow: var(--emboss-hover-shadow); }
+.app-shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+.app-shell.sidebar-collapsed { grid-template-columns: 76px minmax(0, 1fr); }
+.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 24px 16px 16px; background: linear-gradient(155deg, #214c40 0%, #183b34 52%, #122f2a 100%); color: #f3f7f4; }
+.sidebar-brand { display: flex; align-items: center; gap: 11px; padding: 0 10px 26px; }
+.brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.68); border-radius: 10px; background: linear-gradient(145deg, #f4fff9, #a9d9c4); color: #155e4c; font-size: 18px; font-weight: 800; flex: 0 0 auto; box-shadow: 3px 4px 7px rgba(0,0,0,.3), inset 1px 1px rgba(255,255,255,.95), inset -2px -2px rgba(21,94,76,.18); text-shadow: 0 1px rgba(255,255,255,.8); }
+.brand-copy strong { display: block; font-size: 15px; }
+.brand-copy small { display: block; margin-top: 3px; color: #afc9bf; font-size: 11px; }
+.sidebar-label { padding: 0 11px; margin: 0 0 8px; color: #9cb9ae; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.sidebar-nav { display: grid; gap: 4px; }
+.nav-item { display: flex; align-items: center; gap: 11px; min-height: 42px; padding: 9px 11px; border-radius: 6px; color: #d9e8e1; text-decoration: none; font-size: 13px; font-weight: 600; }
+.nav-item:hover, .nav-item.active { background: #2a564a; color: #fff; }
+.nav-item.active { box-shadow: inset 3px 0 #9de2c7; }
+.nav-icon { width: 30px; height: 30px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid rgba(224,248,237,.24); border-radius: 8px; background: linear-gradient(145deg, rgba(238,255,246,.22), rgba(94,143,122,.1)); color: #e8fff4; text-align: center; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,.48); box-shadow: 3px 4px 6px rgba(0,0,0,.22), inset 1px 1px rgba(255,255,255,.18), inset -2px -2px rgba(0,0,0,.12); transform: perspective(80px) rotateY(-7deg); transition: transform .18s ease, box-shadow .18s ease; }
+.nav-item:hover .nav-icon, .nav-item.active .nav-icon { transform: perspective(80px) rotateY(-7deg) translateY(-1px); box-shadow: 3px 5px 8px rgba(0,0,0,.3), inset 1px 1px rgba(255,255,255,.26), inset -2px -2px rgba(0,0,0,.12); }
+.sidebar-footer { margin-top: auto; padding: 14px 10px 2px; border-top: 1px solid #31584e; color: #b6cdc4; font-size: 11px; }
+.sidebar-collapsed .sidebar { padding-right: 10px; padding-left: 10px; }
+.sidebar-collapsed .sidebar-brand { justify-content: center; padding-right: 0; padding-left: 0; }
+.sidebar-collapsed .brand-copy, .sidebar-collapsed .sidebar-label, .sidebar-collapsed .sidebar-footer, .sidebar-collapsed .nav-text { display: none; }
+.sidebar-collapsed .nav-item { justify-content: center; padding-right: 6px; padding-left: 6px; }
+.sidebar-collapsed .nav-item.active { box-shadow: inset 0 0 0 1px #9de2c7; }
+.workspace { min-width: 0; }
+.page-topbar { position: sticky; top: 0; z-index: 10; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 28px; padding-top: calc(15px + env(safe-area-inset-top, 0px)); background: var(--card-bg); border-bottom: 1px solid var(--border); }
+.page-title { font-size: 17px; font-weight: 700; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.sidebar-toggle-btn { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 7px; background: transparent; color: var(--text); cursor: pointer; font-size: 19px; }
+.sidebar-toggle-btn:hover { background: var(--bg); }
+.page-content { max-width: 1440px; margin: 0 auto; padding: 28px; }
+@media (max-width: 900px) { .app-shell { grid-template-columns: 206px minmax(0, 1fr); } .app-shell.sidebar-collapsed { grid-template-columns: 68px minmax(0, 1fr); } .page-topbar { padding-right: 22px; padding-left: 22px; } .page-content { padding: 22px; } }
+@media (max-width: 640px) {
+  .app-shell { display: flex; flex-direction: column; }
+  .sidebar { display: none; position: static; height: auto; padding: 12px; }
+  .app-shell.sidebar-open .sidebar { display: flex; }
+  .sidebar-brand { padding: 0 4px 12px; }
+  .sidebar-label, .sidebar-footer { display: none; }
+  .sidebar-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .nav-item { min-height: 38px; padding: 8px 10px; }
+  .sidebar-collapsed .brand-copy, .sidebar-collapsed .nav-text { display: block; }
+  .sidebar-collapsed .sidebar-brand { justify-content: flex-start; padding: 0 4px 12px; }
+  .sidebar-collapsed .nav-item { justify-content: flex-start; padding: 8px 10px; }
+  .sidebar-collapsed .nav-item.active { box-shadow: inset 3px 0 #9de2c7; }
+  .page-topbar { min-height: 62px; padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+  .page-title { font-size: 15px; }
+  .page-content { padding: 18px 14px 28px; }
+}
+
+.topbar {
+  position: sticky; top: 0; padding: 14px 16px; padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  background: var(--card-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 10;
+}
+.topbar-left { display: flex; flex-direction: column; min-width: 0; }
+.topbar-left .brand { font-weight: 700; color: var(--primary); font-size: 15px; }
+.back-link { font-size: 12px; color: var(--text-muted); text-decoration: none; }
+.status-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+.theme-toggle-btn, .logout-btn {
+  border: 1px solid var(--border); background: transparent; color: var(--text);
+  border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.theme-toggle-btn { width: 32px; height: 32px; font-size: 14px; }
+.logout-btn { padding: 8px 12px; font-size: 13px; color: var(--text-muted); }
+.logout-btn:hover { background: var(--bg); }
+
+.container { max-width: 1440px; margin: 0 auto; padding: 0; }
+.section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin: 4px 0 10px; letter-spacing: 0.04em; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.field input, .field select {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 14px; background: var(--card-bg); color: var(--text);
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--primary); }
+.field-hint { font-size: 11px; color: var(--text-muted); margin-top: -6px; margin-bottom: 12px; }
+
+.search-box { margin-bottom: 12px; }
+
+.list-item {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+}
+.list-item .code { font-size: 11px; font-weight: 700; color: var(--primary); background: #e3f3ed; padding: 2px 8px; border-radius: 999px; display: inline-block; margin-bottom: 3px; }
+.list-item .name { font-size: 14px; font-weight: 600; }
+.list-item .sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.qty-badge { font-size: 15px; font-weight: 700; flex-shrink: 0; text-align: right; }
+.qty-badge.low { color: var(--danger); }
+.qty-badge.zero { color: var(--text-muted); }
+.qty-badge .unit { font-size: 11px; font-weight: 400; color: var(--text-muted); display: block; }
+
+.add-btn-row { margin-bottom: 14px; }
+.btn-add {
+  width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.btn-add:hover { background: var(--primary-dark); }
+.btn-primary {
+  width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 4px;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.alert { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; display: none; }
+.alert.show { display: block; }
+.alert-error { background: #fce8e6; color: var(--danger); }
+.alert-success { background: #e6f4ea; color: var(--success); }
+
+.empty-state { text-align: center; padding: 24px 16px; color: var(--text-muted); font-size: 13px; }
+.loading, .error-box { text-align: center; padding: 40px 16px; color: var(--text-muted); }
+.error-box { color: var(--danger); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 50;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.modal-box {
+  background: var(--card-bg); border-radius: 16px 16px 0 0; padding: 18px; max-width: 480px; width: 100%;
+  max-height: 88vh; overflow-y: auto;
+  padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 540px) {
+  .modal-overlay { align-items: center; }
+  .modal-box { border-radius: var(--radius); }
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.modal-header h3 { margin: 0; font-size: 15px; }
+.modal-close-btn { border: none; background: var(--bg); color: var(--text-muted); width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; }
+
+.update-banner {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--primary); color: #fff; font-size: 13px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 30;
+}
+.update-banner button { background: #fff; color: var(--primary); border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+</style>
+<link rel="stylesheet" href="app-navigation.css" />
+<script src="app-navigation.js" defer></script>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><span class="brand-mark">S</span><span class="brand-copy"><strong>SmarterERP</strong><small>Business management</small></span></div>
+    <div class="sidebar-label">Workspace</div>
+    <nav class="sidebar-nav" id="sidebarNav" aria-label="Navigasi utama"></nav>
+    <div class="sidebar-footer">Sistem manajemen toko</div>
+  </aside>
+  <div class="workspace">
+    <header class="page-topbar">
+      <div class="page-title">Stok</div>
+      <div class="topbar-actions">
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Tutup sidebar" aria-expanded="true" title="Tutup sidebar">☰</button>
+        <div class="status-row"><span class="status-dot" id="onlineDot"></span><span id="onlineText">Online</span></div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Ubah tema">🌙</button>
+        <button class="logout-btn" onclick="logoutUser()">Keluar</button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="container" id="mainContent"><div class="loading">Memuat...</div></div>
+    </main>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://icqabcbjhmzytvajtfst.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcWFiY2JqaG16eXR2YWp0ZnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTU2NjcsImV4cCI6MjEwNTQ3MTY2N30.h-ui5M9g5EKFVl6TrT_iSM1W4yErgpDKyv3BIzUTt-U";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ---------------------------------------------------------
+// SHARED HELPERS
+// ---------------------------------------------------------
+const APP_VERSION = "2026-10-07-02";
+
+const APP_MENUS = [
+  { title: "POS Penjualan", icon: "🧾", href: "pos-penjualan.html", roles: ["admin_organisasi", "admin_toko", "kasir"] },
+  { title: "Penjualan", icon: "💰", href: "penjualan.html", roles: ["admin_organisasi", "admin_toko"] },
+  { title: "Stok", icon: "📦", href: "stok.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Pembelian", icon: "🛒", href: "pembelian.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Transfer Stok", icon: "🔄", href: "transfer-stok.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Stok Opname", icon: "📋", href: "stok-opname.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Laporan", icon: "📊", href: "laporan.html", roles: ["admin_organisasi", "admin_toko"] },
+  { title: "Master Barang", icon: "🏷️", href: "menu.html", roles: ["admin_organisasi", "admin_toko"] },
+  { title: "Daftar Toko", icon: "🏬", href: "daftar-toko.html", roles: ["super_admin", "admin_organisasi"] },
+  { title: "Pengguna", icon: "👥", href: "pengguna.html", roles: ["super_admin", "admin_organisasi", "admin_toko"] },
+];
+
+function initAppShell() {
+  const role = sessionStorage.getItem("smarterp_role");
+  const currentPage = window.location.pathname.split("/").pop();
+  const isShiftHolder = ["kepala_toko", "asisten_toko", "merchandiser"].includes(role);
+  const links = [{ title: "Dashboard", icon: "⌂", href: "dashboard.html" }, ...APP_MENUS.filter(menu => !role || menu.roles.includes(role) || (isShiftHolder && menu.href !== "daftar-toko.html"))];
+  document.getElementById("sidebarNav").innerHTML = links.map(menu => `
+    <a class="nav-item ${menu.href === currentPage ? "active" : ""}" href="${menu.href}" ${menu.href === currentPage ? 'aria-current="page"' : ""}>
+      <span class="nav-icon">${menu.icon}</span><span class="nav-text">${menu.title}</span>
+    </a>
+  `).join("");
+}
+
+function toggleSidebar() {
+  const shell = document.querySelector(".app-shell");
+  const button = document.getElementById("sidebarToggleBtn");
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
+  const isOpen = isMobile
+    ? shell.classList.toggle("sidebar-open")
+    : (shell.classList.toggle("sidebar-collapsed"), !shell.classList.contains("sidebar-collapsed"));
+  button.setAttribute("aria-expanded", String(isOpen));
+  button.setAttribute("aria-label", isOpen ? "Tutup sidebar" : "Buka sidebar");
+  button.title = isOpen ? "Tutup sidebar" : "Buka sidebar";
+}
+initAppShell();
+
+function applyThemeIcon() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const btn = document.getElementById('themeToggleBtn');
+  if (!btn) return;
+  btn.textContent = current === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  let next;
+  if (!current) next = 'light';
+  else if (current === 'light') next = 'dark';
+  else next = null;
+  if (next) { html.setAttribute('data-theme', next); localStorage.setItem('smarterp_theme', next); }
+  else { html.removeAttribute('data-theme'); localStorage.removeItem('smarterp_theme'); }
+  applyThemeIcon();
+}
+function updateOnlineStatus() {
+  const dot = document.getElementById('onlineDot');
+  const text = document.getElementById('onlineText');
+  if (!dot || !text) return;
+  const online = navigator.onLine;
+  dot.style.background = online ? 'var(--success)' : 'var(--danger)';
+  text.textContent = online ? 'Online' : 'Offline';
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+async function checkForUpdate() {
+  if (!navigator.onLine) return;
+  try {
+    const res = await fetch(window.location.pathname + '?_=' + Date.now(), { cache: 'no-store' });
+    const html = await res.text();
+    const match = html.match(/app-version"\s+content="([^"]+)"/);
+    if (match && match[1] !== APP_VERSION) showUpdateBanner();
+  } catch (e) {}
+}
+function showUpdateBanner() {
+  if (document.getElementById('updateBanner')) return;
+  const b = document.createElement('div');
+  b.id = 'updateBanner'; b.className = 'update-banner';
+  b.innerHTML = 'Ada pembaruan halaman ini. <button onclick="location.reload()">Muat ulang</button>';
+  document.body.appendChild(b);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
+window.addEventListener('focus', checkForUpdate);
+setInterval(checkForUpdate, 60000);
+document.addEventListener('DOMContentLoaded', () => { applyThemeIcon(); updateOnlineStatus(); });
+
+async function requireLogin() {
+  const { data } = await supabaseClient.auth.getSession();
+  if (!data.session) { window.location.href = "index.html"; return null; }
+  return data.session;
+}
+async function logoutUser() {
+  await supabaseClient.auth.signOut();
+  sessionStorage.clear();
+  window.location.href = "index.html";
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str || "";
+  return div.innerHTML;
+}
+
+function openFormModal(title, bodyHtml) {
+  closeFormModal();
+  const overlay = document.createElement("div");
+  overlay.id = "formModalOverlay";
+  overlay.className = "modal-overlay";
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-header"><h3>${title}</h3><button class="modal-close-btn" onclick="closeFormModal()">✕</button></div>
+      ${bodyHtml}
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+function closeFormModal() {
+  const el = document.getElementById("formModalOverlay");
+  if (el) el.remove();
+}
+
+// ---------------------------------------------------------
+// HALAMAN STOK
+// ---------------------------------------------------------
+let myRole = null;
+let myOrgId = null;
+let myStoreId = null;
+let activeStoreId = null;
+let itemsCache = [];
+let canAdjust = false;
+
+function renderError(message) {
+  document.getElementById("mainContent").innerHTML = `<div class="error-box">${message}</div>`;
+}
+
+async function renderStoreSelector() {
+  const { data: stores } = await supabaseClient
+    .from("stores").select("id, name, store_code").eq("organization_id", myOrgId).order("created_at");
+  if (!stores || stores.length === 0) return "";
+  if (!activeStoreId) activeStoreId = stores[0].id;
+  return `
+    <div class="field">
+      <label>Toko</label>
+      <select id="storeSelector" onchange="onChangeStoreSelector(this.value)">
+        ${stores.map(s => `<option value="${s.id}" ${s.id === activeStoreId ? "selected" : ""}>${s.store_code} - ${s.name}</option>`).join("")}
+      </select>
+    </div>
+  `;
+}
+
+function onChangeStoreSelector(id) {
+  activeStoreId = id;
+  loadStok();
+}
+
+async function loadItemsCache() {
+  const { data } = await supabaseClient
+    .from("items").select("id, plu, name, base_unit_id, units!items_base_unit_id_fkey(code)")
+    .eq("organization_id", myOrgId).order("plu");
+  itemsCache = data || [];
+}
+
+function qtyClass(qty) {
+  if (qty <= 0) return "zero";
+  if (qty < 10) return "low";
+  return "";
+}
+
+async function loadStok() {
+  if (itemsCache.length === 0) await loadItemsCache();
+
+  if (itemsCache.length === 0) {
+    document.getElementById("mainContent").innerHTML = `<div class="empty-state">Belum ada data Barang. Isi dulu di Master Barang.</div>`;
+    return;
+  }
+
+  const storeSelectorHtml = (myRole === "admin_organisasi" || myRole === "super_admin")
+    ? await renderStoreSelector()
+    : "";
+
+  if (!activeStoreId) activeStoreId = myStoreId;
+  if (!activeStoreId) {
+    document.getElementById("mainContent").innerHTML = `<div class="empty-state">Toko belum ditentukan.</div>`;
+    return;
+  }
+
+  const { data: balances, error } = await supabaseClient
+    .from("stock_balances").select("item_id, qty").eq("store_id", activeStoreId);
+  if (error) { renderError("Gagal memuat stok: " + error.message); return; }
+
+  const balanceMap = {};
+  (balances || []).forEach(b => { balanceMap[b.item_id] = b.qty; });
+
+  const listHtml = itemsCache.map(it => {
+    const qty = balanceMap[it.id] || 0;
+    return `
+      <div class="list-item">
+        <div>
+          <span class="code">${it.plu}</span>
+          <div class="name">${escapeHtml(it.name)}</div>
+        </div>
+        <div class="qty-badge ${qtyClass(qty)}">
+          ${Number(qty).toLocaleString("id-ID")}
+          <span class="unit">${it.units ? it.units.code : ""}</span>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("mainContent").innerHTML = `
+    <div class="section-title">Stok</div>
+    ${storeSelectorHtml}
+    ${canAdjust ? `<div class="add-btn-row"><button class="btn-add" onclick="openAdjustModal()">+ Penyesuaian Stok</button></div>` : ""}
+    ${listHtml}
+  `;
+}
+
+function openAdjustModal() {
+  openFormModal("Penyesuaian Stok", `
+    <div id="alertBox" class="alert"></div>
+    <form id="adjustForm">
+      <div class="field">
+        <label>Barang</label>
+        <select id="f_item">
+          ${itemsCache.map(it => `<option value="${it.id}">${it.plu} - ${escapeHtml(it.name)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field">
+        <label>Perubahan Qty</label>
+        <input type="number" id="f_qty" required step="any" placeholder="Contoh: 50 (nambah) atau -5 (ngurangin)" />
+        <div class="field-hint">Isi stok awal: masukin angka positif. Koreksi barang hilang/rusak: masukin angka negatif.</div>
+      </div>
+      <div class="field"><label>Catatan</label><input type="text" id="f_note" placeholder="Contoh: Stok awal toko" /></div>
+      <button type="submit" class="btn-primary" id="submitBtn">Simpan</button>
+    </form>
+  `);
+  document.getElementById("adjustForm").addEventListener("submit", onSubmitAdjust);
+}
+
+async function onSubmitAdjust(e) {
+  e.preventDefault();
+  const btn = document.getElementById("submitBtn");
+  const alertBox = document.getElementById("alertBox");
+  btn.disabled = true; btn.textContent = "Menyimpan...";
+  alertBox.className = "alert";
+
+  const qty = parseFloat(document.getElementById("f_qty").value);
+  if (isNaN(qty) || qty === 0) {
+    alertBox.textContent = "Masukkan angka yang valid (gak boleh 0).";
+    alertBox.className = "alert show alert-error";
+    btn.disabled = false; btn.textContent = "Simpan";
+    return;
+  }
+
+  const { error } = await supabaseClient.rpc("adjust_stock", {
+    p_store_id: activeStoreId,
+    p_item_id: document.getElementById("f_item").value,
+    p_qty_change: qty,
+    p_movement_type: "penyesuaian",
+    p_note: document.getElementById("f_note").value.trim(),
+  });
+
+  if (error) {
+    alertBox.textContent = error.message;
+    alertBox.className = "alert show alert-error";
+    btn.disabled = false; btn.textContent = "Simpan";
+    return;
+  }
+
+  closeFormModal();
+  await loadStok();
+}
+
+async function init() {
+  const session = await requireLogin();
+  if (!session) return;
+
+  const { data: profile, error } = await supabaseClient
+    .from("profiles").select("role, organization_id, store_id")
+    .eq("id", session.user.id).maybeSingle();
+  if (error || !profile) { renderError("Gagal memuat profil."); return; }
+
+  if (!["admin_organisasi", "admin_toko", "staff_gudang", "super_admin", "kepala_toko", "asisten_toko", "merchandiser"].includes(profile.role)) {
+    renderError("Kamu tidak punya akses ke halaman ini.");
+    return;
+  }
+
+  myRole = profile.role;
+  myOrgId = profile.organization_id;
+  myStoreId = profile.store_id;
+  canAdjust = ["admin_organisasi", "admin_toko", "staff_gudang", "super_admin"].includes(profile.role);
+    canAdjust = ["admin_organisasi", "admin_toko", "staff_gudang", "super_admin", "kepala_toko", "asisten_toko", "merchandiser"].includes(profile.role);
+  activeStoreId = sessionStorage.getItem("smarterp_active_store_id") || myStoreId;
+
+  await loadStok();
+}
+
+init();
+</script>
+
+</body>
+</html>

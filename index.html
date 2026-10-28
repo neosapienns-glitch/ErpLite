@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta name="app-version" content="2026-10-07-02" />
+<title>SmarterERP Lite - Login</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Terapkan tema tersimpan sedini mungkin, biar gak "kedip" warna salah saat load
+(function () {
+  const saved = localStorage.getItem('smarterp_theme');
+  if (saved === 'light' || saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', saved);
+  }
+})();
+</script>
+<style>
+:root {
+  --primary: #16856b;
+  --primary-dark: #116b56;
+  --bg: #f2f5f2;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-muted: #6b7280;
+  --border: #dce4df;
+  --danger: #d93025;
+  --success: #188038;
+  --emboss-shadow: 0 8px 22px rgba(17,59,45,.1), inset 0 1px rgba(255,255,255,.92), inset 0 -1px rgba(17,59,45,.04);
+  --radius: 10px;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15181f;
+    --card-bg: #1f232c;
+    --text: #e8eaed;
+    --text-muted: #9aa0a6;
+    --border: #353a45;
+    --emboss-shadow: 0 8px 22px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.05), inset 0 -1px rgba(0,0,0,.2);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15181f;
+  --card-bg: #1f232c;
+  --text: #e8eaed;
+  --text-muted: #9aa0a6;
+  --border: #353a45;
+  --emboss-shadow: 0 8px 22px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.05), inset 0 -1px rgba(0,0,0,.2);
+}              
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);                                                                                                               
+  color: var(--text);
+}
+
+.auth-wrapper {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-card {
+  background: var(--card-bg);
+  width: 100%;
+  max-width: 420px;
+  border-radius: var(--radius);
+  box-shadow: var(--emboss-shadow), 0 12px 28px rgba(17,59,45,.08);
+  padding: 32px 28px;
+}
+
+.auth-logo { text-align: center; margin-bottom: 20px; }
+.auth-logo h1 { font-size: 22px; margin: 0; color: var(--primary); }
+.auth-logo p { margin: 4px 0 0; color: var(--text-muted); font-size: 13px; }
+
+.tabs {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  background: var(--card-bg);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.tab-btn.active { background: var(--primary); color: #fff; }
+
+.form-panel { display: none; }
+.form-panel.active { display: block; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--card-bg);
+  color: var(--text);
+}
+.field input:focus { outline: none; border-color: var(--primary); }
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 18px 0 10px;
+  letter-spacing: 0.04em;
+}
+
+.alert { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; display: none; }
+.alert.show { display: block; }
+.alert-error { background: #fce8e6; color: var(--danger); }
+.alert-success { background: #e6f4ea; color: var(--success); }
+
+.status-strip {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 8px 14px; padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--card-bg); border-bottom: 1px solid var(--border);
+  font-size: 12px; color: var(--text-muted); z-index: 20;
+}
+.status-left { display: flex; align-items: center; gap: 6px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+.theme-toggle-btn {
+  border: 1px solid var(--border); background: transparent; color: var(--text);
+  width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.auth-wrapper { padding-top: 90px; }
+
+.update-banner {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--primary); color: #fff; font-size: 13px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 30;
+}
+.update-banner button {
+  background: #fff; color: var(--primary); border: none; border-radius: 6px;
+  padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<div class="status-strip">
+  <div class="status-left">
+    <span class="status-dot" id="onlineDot"></span>
+    <span id="onlineText">Online</span>
+  </div>
+  <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()">🌙</button>
+</div>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <h1>SmarterERP Lite</h1>
+      <p>Kelola toko kamu lebih simpel</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tabLoginBtn" onclick="switchTab('login')"><b>Login</b></button>
+      <button class="tab-btn" id="tabRegisterBtn" onclick="switchTab('register')" style="display:none;">Daftar Toko Baru</button>
+    </div>
+
+    <div id="alertBox" class="alert"></div>
+
+    <!-- ===================== LOGIN ===================== -->
+    <div class="form-panel active" id="panelLogin">
+      <form id="formLogin">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="loginEmail" required placeholder="nama@email.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="loginPassword" required placeholder="••••••••" />
+        </div>
+        <button type="submit" class="btn-primary" id="loginSubmitBtn">Masuk</button>
+      </form>
+    </div>
+
+    <!-- ===================== REGISTER ===================== -->
+    <div class="form-panel" id="panelRegister">
+      <form id="formRegister">
+        <div class="section-title">Akun Kamu</div>
+        <div class="field">
+          <label>Nama Lengkap</label>
+          <input type="text" id="regFullName" required placeholder="Nama pemilik/admin" />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="regEmail" required placeholder="nama@email.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="regPassword" required minlength="6" placeholder="Minimal 6 karakter" />
+        </div>
+
+        <div class="section-title">Data Organisasi</div>
+        <div class="field">
+          <label>Nama Organisasi / Badan Usaha</label>
+          <input type="text" id="regOrgName" required placeholder="Contoh: CV Berkah Jaya" />
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin:-4px 0 14px;">
+          Toko/cabang pertama ditambahkan setelah ini, di halaman Daftar Toko.
+        </p>
+
+        <button type="submit" class="btn-primary" id="registerSubmitBtn">Daftar Organisasi</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// --- GANTI 2 BARIS INI dengan kredensial project Supabase kamu ---
+const SUPABASE_URL = "https://icqabcbjhmzytvajtfst.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcWFiY2JqaG16eXR2YWp0ZnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTU2NjcsImV4cCI6MjEwNTQ3MTY2N30.h-ui5M9g5EKFVl6TrT_iSM1W4yErgpDKyv3BIzUTt-U";
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Halaman tujuan setelah login, sesuai role
+// Semua role mendarat di dashboard dulu. Kasir butuh buka shift dulu
+// sebelum ke POS, jadi gak langsung dilempar ke halaman kerja.
+const ROLE_REDIRECT = {
+  super_admin: "dashboard.html",
+  admin_organisasi: "dashboard.html",
+  admin_toko: "dashboard.html",
+  kepala_toko: "dashboard.html",
+  asisten_toko: "dashboard.html",
+  merchandiser: "dashboard.html",
+  kasir: "dashboard.html",
+  staff_gudang: "dashboard.html",
+};
+
+const PENDING_REG_KEY = "smarterp_pending_registration";
+
+async function registerBusiness({ email, password, fullName, orgName }) {
+  const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+  if (signUpError) throw signUpError;
+
+  const regPayload = { email, fullName, orgName };
+
+  if (!signUpData.session) {
+    // Confirm email masih aktif di project Supabase -> belum ada sesi,
+    // RPC belum bisa dipanggil sekarang. Simpan dulu, akan dituntaskan
+    // otomatis saat user login pertama kali setelah konfirmasi email.
+    localStorage.setItem(PENDING_REG_KEY, JSON.stringify(regPayload));
+    return { needsEmailConfirmation: true };
+  }
+
+  await finishRegistration(regPayload);
+  return { needsEmailConfirmation: false };
+}
+
+async function finishRegistration({ orgName, fullName, email }) {
+  const { error: rpcError } = await supabaseClient.rpc("register_business", {
+    org_name: orgName,
+    owner_full_name: fullName,
+    owner_email: email,
+  });
+  if (rpcError) throw rpcError;
+  localStorage.removeItem(PENDING_REG_KEY);
+}
+
+async function loginUser({ email, password }) {
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+
+  let { data: profile, error: profileError } = await supabaseClient
+    .from("profiles")
+    .select("role, full_name, organization_id, store_id")
+    .eq("id", data.user.id)
+    .maybeSingle();
+  if (profileError) throw profileError;
+
+  if (!profile) {
+    // Belum ada profile -> kemungkinan ini login pertama setelah konfirmasi
+    // email, dan registrasi organisasi/toko sempat tertunda. Coba selesaikan
+    // pakai data yang tersimpan di browser ini.
+    const pendingRaw = localStorage.getItem(PENDING_REG_KEY);
+    if (pendingRaw) {
+      const pending = JSON.parse(pendingRaw);
+      if (pending.email === email) {
+        await finishRegistration(pending);
+        const retry = await supabaseClient
+          .from("profiles")
+          .select("role, full_name, organization_id, store_id")
+          .eq("id", data.user.id)
+          .maybeSingle();
+        if (retry.error) throw retry.error;
+        profile = retry.data;
+      }
+    }
+  }
+
+  if (!profile) {
+    throw new Error("Akun ini belum punya profil toko. Silakan daftar ulang lewat tab 'Daftar Toko Baru' di perangkat/browser yang sama dengan saat kamu mendaftar.");
+  }
+
+  sessionStorage.setItem("smarterp_role", profile.role);
+  sessionStorage.setItem("smarterp_full_name", profile.full_name || "");
+  sessionStorage.setItem("smarterp_org_id", profile.organization_id);
+  sessionStorage.setItem("smarterp_store_id", profile.store_id || "");
+
+  return profile;
+}
+
+// ---------------------------------------------------------
+// SHARED HELPERS - copy blok ini ke SEMUA halaman lain
+// (theme toggle, status online, auto-update checker, cek login)
+// ---------------------------------------------------------
+const APP_VERSION = "2026-10-07-02"; // naikkan manual tiap kali file ini di-update & di-deploy ulang
+
+function applyThemeIcon() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const btn = document.getElementById('themeToggleBtn');
+  if (!btn) return;
+  btn.textContent = current === 'dark' ? '☀️' : '🌙';
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  // urutan: ikut sistem -> light -> dark -> ikut sistem -> ...
+  let next;
+  if (!current) next = 'light';
+  else if (current === 'light') next = 'dark';
+  else next = null;
+
+  if (next) {
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('smarterp_theme', next);
+  } else {
+    html.removeAttribute('data-theme');
+    localStorage.removeItem('smarterp_theme');
+  }
+  applyThemeIcon();
+}
+
+function updateOnlineStatus() {
+  const dot = document.getElementById('onlineDot');
+  const text = document.getElementById('onlineText');
+  if (!dot || !text) return;
+  const online = navigator.onLine;
+  dot.style.background = online ? 'var(--success)' : 'var(--danger)';
+  text.textContent = online ? 'Online' : 'Offline';
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+async function checkForUpdate() {
+  if (!navigator.onLine) return;
+  try {
+    const res = await fetch(window.location.pathname + '?_=' + Date.now(), { cache: 'no-store' });
+    const html = await res.text();
+    const match = html.match(/app-version"\s+content="([^"]+)"/);
+    if (match && match[1] !== APP_VERSION) showUpdateBanner();
+  } catch (e) { /* offline atau gagal fetch, abaikan */ }
+}
+
+function showUpdateBanner() {
+  if (document.getElementById('updateBanner')) return;
+  const b = document.createElement('div');
+  b.id = 'updateBanner';
+  b.className = 'update-banner';
+  b.innerHTML = 'Ada pembaruan halaman ini. <button onclick="location.reload()">Muat ulang</button>';
+  document.body.appendChild(b);
+}
+
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
+window.addEventListener('focus', checkForUpdate);
+setInterval(checkForUpdate, 60000);
+
+document.addEventListener('DOMContentLoaded', () => {
+  applyThemeIcon();
+  updateOnlineStatus();
+});
+
+async function requireLogin() {
+  const { data } = await supabaseClient.auth.getSession();
+  if (!data.session) {
+    window.location.href = "index.html";
+    return null;
+  }
+  return data.session;
+}
+
+async function logoutUser() {
+  await supabaseClient.auth.signOut();
+  sessionStorage.clear();
+  window.location.href = "index.html";
+}
+
+// Tab "Daftar Toko Baru" cuma muncul buat email pemilik utama.
+// Ini sekadar kenyamanan UI - pengecekan sebenarnya ada di server
+// (fungsi register_business menolak kalau bukan email ini).
+const OWNER_EMAIL = "hadiatpermana@gmail.com";
+
+document.getElementById('loginEmail').addEventListener('input', (e) => {
+  const match = e.target.value.trim().toLowerCase() === OWNER_EMAIL;
+  document.getElementById('tabRegisterBtn').style.display = match ? "" : "none";
+  if (!match && document.getElementById('panelRegister').classList.contains('active')) {
+    switchTab('login');
+  }
+});
+
+function switchTab(tab) {
+  document.getElementById('tabLoginBtn').classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegisterBtn').classList.toggle('active', tab === 'register');
+  document.getElementById('panelLogin').classList.toggle('active', tab === 'login');
+  document.getElementById('panelRegister').classList.toggle('active', tab === 'register');
+  hideAlert();
+}
+
+function showAlert(message, type) {
+  const box = document.getElementById('alertBox');
+  box.textContent = message;
+  box.className = 'alert show ' + (type === 'error' ? 'alert-error' : 'alert-success');
+}
+function hideAlert() {
+  document.getElementById('alertBox').className = 'alert';
+}
+
+document.getElementById('formLogin').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('loginSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Memproses...';
+  hideAlert();
+
+  try {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const profile = await loginUser({ email, password });
+    showAlert('Login berhasil, mengalihkan...', 'success');
+    setTimeout(() => {
+      window.location.href = ROLE_REDIRECT[profile.role] || "dashboard.html";
+    }, 600);
+  } catch (err) {
+    showAlert(err.message || 'Login gagal, cek email/password.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Masuk';
+  }
+});
+
+document.getElementById('formRegister').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('registerSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Memproses...';
+  hideAlert();
+
+  try {
+    const payload = {
+      fullName: document.getElementById('regFullName').value.trim(),
+      email: document.getElementById('regEmail').value.trim(),
+      password: document.getElementById('regPassword').value,
+      orgName: document.getElementById('regOrgName').value.trim(),
+    };
+
+    const result = await registerBusiness(payload);
+
+    if (result.needsEmailConfirmation) {
+      showAlert('Akun dibuat! Cek email kamu untuk konfirmasi, lalu login di tab Login.', 'success');
+      switchTab('login');
+    } else {
+      showAlert('Organisasi berhasil dibuat! Mengalihkan untuk tambah toko pertama...', 'success');
+      setTimeout(() => (window.location.href = 'daftar-toko.html'), 800);
+    }
+  } catch (err) {
+    showAlert(err.message || 'Registrasi gagal, coba lagi.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Daftar & Buat Toko';
+  }
+});
+</script>
+
+</body>
+</html>

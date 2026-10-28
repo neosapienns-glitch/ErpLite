@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta name="app-version" content="2026-10-07-02" />
+<title>SmarterERP Lite - Pengguna</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const saved = localStorage.getItem('smarterp_theme');
+  if (saved === 'light' || saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', saved);
+  }
+})();
+</script>
+<style>
+:root {
+  --primary: #16856b; --primary-dark: #116b56; --bg: #f2f5f2; --card-bg: #ffffff;
+  --text: #1f2937; --text-muted: #6b7280; --border: #dce4df; --danger: #d93025; --success: #188038;
+  --radius: 10px;
+  --emboss-shadow: 0 5px 12px rgba(17,59,45,.08), inset 0 1px rgba(255,255,255,.92), inset 0 -1px rgba(17,59,45,.04);
+  --emboss-hover-shadow: 0 8px 16px rgba(17,59,45,.12), inset 0 1px rgba(255,255,255,.92), inset 0 -1px rgba(17,59,45,.04);
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg:#15181f; --card-bg:#1f232c; --text:#e8eaed; --text-muted:#9aa0a6; --border:#353a45; }
+}
+:root[data-theme="dark"] { --bg:#15181f; --card-bg:#1f232c; --text:#e8eaed; --text-muted:#9aa0a6; --border:#353a45; }
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100%; font-family: "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --emboss-shadow: 0 5px 14px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.05), inset 0 -1px rgba(0,0,0,.2); --emboss-hover-shadow: 0 8px 18px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.06), inset 0 -1px rgba(0,0,0,.24); } }
+:root[data-theme="dark"] { --emboss-shadow: 0 5px 14px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.05), inset 0 -1px rgba(0,0,0,.2); --emboss-hover-shadow: 0 8px 18px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.06), inset 0 -1px rgba(0,0,0,.24); }
+.user-card, .form-card, .credential-box { box-shadow: var(--emboss-shadow); transition: box-shadow .18s ease, transform .18s ease; }
+.user-card:hover, .form-card:hover, .credential-box:hover { transform: translateY(-1px); box-shadow: var(--emboss-hover-shadow); }
+.app-shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+.app-shell.sidebar-collapsed { grid-template-columns: 76px minmax(0, 1fr); }
+.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 24px 16px 16px; background: linear-gradient(155deg, #214c40 0%, #183b34 52%, #122f2a 100%); color: #f3f7f4; }
+.sidebar-brand { display: flex; align-items: center; gap: 11px; padding: 0 10px 26px; }
+.brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.68); border-radius: 10px; background: linear-gradient(145deg, #f4fff9, #a9d9c4); color: #155e4c; font-size: 18px; font-weight: 800; flex: 0 0 auto; box-shadow: 3px 4px 7px rgba(0,0,0,.3), inset 1px 1px rgba(255,255,255,.95), inset -2px -2px rgba(21,94,76,.18); text-shadow: 0 1px rgba(255,255,255,.8); }
+.brand-copy strong { display: block; font-size: 15px; }
+.brand-copy small { display: block; margin-top: 3px; color: #afc9bf; font-size: 11px; }
+.sidebar-label { padding: 0 11px; margin: 0 0 8px; color: #9cb9ae; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.sidebar-nav { display: grid; gap: 4px; }
+.nav-item { display: flex; align-items: center; gap: 11px; min-height: 42px; padding: 9px 11px; border-radius: 6px; color: #d9e8e1; text-decoration: none; font-size: 13px; font-weight: 600; }
+.nav-item:hover, .nav-item.active { background: #2a564a; color: #fff; }
+.nav-item.active { box-shadow: inset 3px 0 #9de2c7; }
+.nav-icon { width: 30px; height: 30px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid rgba(224,248,237,.24); border-radius: 8px; background: linear-gradient(145deg, rgba(238,255,246,.22), rgba(94,143,122,.1)); color: #e8fff4; text-align: center; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,.48); box-shadow: 3px 4px 6px rgba(0,0,0,.22), inset 1px 1px rgba(255,255,255,.18), inset -2px -2px rgba(0,0,0,.12); transform: perspective(80px) rotateY(-7deg); transition: transform .18s ease, box-shadow .18s ease; }
+.nav-item:hover .nav-icon, .nav-item.active .nav-icon { transform: perspective(80px) rotateY(-7deg) translateY(-1px); box-shadow: 3px 5px 8px rgba(0,0,0,.3), inset 1px 1px rgba(255,255,255,.26), inset -2px -2px rgba(0,0,0,.12); }
+.sidebar-footer { margin-top: auto; padding: 14px 10px 2px; border-top: 1px solid #31584e; color: #b6cdc4; font-size: 11px; }
+.sidebar-collapsed .sidebar { padding-right: 10px; padding-left: 10px; }
+.sidebar-collapsed .sidebar-brand { justify-content: center; padding-right: 0; padding-left: 0; }
+.sidebar-collapsed .brand-copy, .sidebar-collapsed .sidebar-label, .sidebar-collapsed .sidebar-footer, .sidebar-collapsed .nav-text { display: none; }
+.sidebar-collapsed .nav-item { justify-content: center; padding-right: 6px; padding-left: 6px; }
+.sidebar-collapsed .nav-item.active { box-shadow: inset 0 0 0 1px #9de2c7; }
+.workspace { min-width: 0; }
+.page-topbar { position: sticky; top: 0; z-index: 10; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 28px; padding-top: calc(15px + env(safe-area-inset-top, 0px)); background: var(--card-bg); border-bottom: 1px solid var(--border); }
+.page-title { font-size: 17px; font-weight: 700; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.sidebar-toggle-btn { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 7px; background: transparent; color: var(--text); cursor: pointer; font-size: 19px; }
+.sidebar-toggle-btn:hover { background: var(--bg); }
+.page-content { max-width: 1440px; margin: 0 auto; padding: 28px; }
+@media (max-width: 900px) { .app-shell { grid-template-columns: 206px minmax(0, 1fr); } .app-shell.sidebar-collapsed { grid-template-columns: 68px minmax(0, 1fr); } .page-topbar { padding-right: 22px; padding-left: 22px; } .page-content { padding: 22px; } }
+@media (max-width: 640px) {
+  .app-shell { display: flex; flex-direction: column; }
+  .sidebar { display: none; position: static; height: auto; padding: 12px; }
+  .app-shell.sidebar-open .sidebar { display: flex; }
+  .sidebar-brand { padding: 0 4px 12px; }
+  .sidebar-label, .sidebar-footer { display: none; }
+  .sidebar-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .nav-item { min-height: 38px; padding: 8px 10px; }
+  .sidebar-collapsed .brand-copy, .sidebar-collapsed .nav-text { display: block; }
+  .sidebar-collapsed .sidebar-brand { justify-content: flex-start; padding: 0 4px 12px; }
+  .sidebar-collapsed .nav-item { justify-content: flex-start; padding: 8px 10px; }
+  .sidebar-collapsed .nav-item.active { box-shadow: inset 3px 0 #9de2c7; }
+  .page-topbar { min-height: 62px; padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+  .page-title { font-size: 15px; }
+  .page-content { padding: 18px 14px 28px; }
+}
+
+.topbar {
+  position: sticky; top: 0; padding: 14px 16px; padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  background: var(--card-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 10;
+}
+.topbar-left { display: flex; flex-direction: column; min-width: 0; }
+.topbar-left .brand { font-weight: 700; color: var(--primary); font-size: 15px; }
+.back-link { font-size: 12px; color: var(--text-muted); text-decoration: none; }
+.status-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+.theme-toggle-btn, .logout-btn {
+  border: 1px solid var(--border); background: transparent; color: var(--text);
+  border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.theme-toggle-btn { width: 32px; height: 32px; font-size: 14px; }
+.logout-btn { padding: 8px 12px; font-size: 13px; color: var(--text-muted); }
+.logout-btn:hover { background: var(--bg); }
+
+.container { max-width: 1440px; margin: 0 auto; padding: 0; }
+.section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin: 18px 0 10px; letter-spacing: 0.04em; }
+
+.user-card {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+}
+.user-card .name { font-size: 14px; font-weight: 600; }
+.user-card .email { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.user-card .meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.role-chip {
+  font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+  background: var(--primary); color: #fff; flex-shrink: 0; white-space: nowrap;
+}
+
+.form-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-top: 10px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.field input, .field select {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 14px; background: var(--card-bg); color: var(--text);
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--primary); }
+.field-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.btn-primary {
+  width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 6px;
+}
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.alert { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; display: none; }
+.alert.show { display: block; }
+.alert-error { background: #fce8e6; color: var(--danger); }
+.alert-success { background: #e6f4ea; color: var(--success); }
+
+.credential-box {
+  background: #e3f3ed; border: 1px solid #afd9c8; border-radius: 8px; padding: 12px; font-size: 13px; margin-bottom: 14px;
+}
+.credential-box code { background: #fff; padding: 2px 6px; border-radius: 4px; }
+
+.empty-state { text-align: center; padding: 24px 16px; color: var(--text-muted); font-size: 13px; }
+.loading, .error-box { text-align: center; padding: 40px 16px; color: var(--text-muted); }
+.error-box { color: var(--danger); }
+
+.update-banner {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--primary); color: #fff; font-size: 13px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 30;
+}
+.update-banner button { background: #fff; color: var(--primary); border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+</style>
+<link rel="stylesheet" href="app-navigation.css" />
+<script src="app-navigation.js" defer></script>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><span class="brand-mark">S</span><span class="brand-copy"><strong>SmarterERP</strong><small>Business management</small></span></div>
+    <div class="sidebar-label">Workspace</div>
+    <nav class="sidebar-nav" id="sidebarNav" aria-label="Navigasi utama"></nav>
+    <div class="sidebar-footer">Sistem manajemen toko</div>
+  </aside>
+  <div class="workspace">
+    <header class="page-topbar">
+      <div class="page-title">Pengguna</div>
+      <div class="topbar-actions">
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Tutup sidebar" aria-expanded="true" title="Tutup sidebar">☰</button>
+        <div class="status-row"><span class="status-dot" id="onlineDot"></span><span id="onlineText">Online</span></div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Ubah tema">🌙</button>
+        <button class="logout-btn" onclick="logoutUser()">Keluar</button>
+      </div>
+    </header>
+    <main class="page-content">
+      <div class="container" id="mainContent"><div class="loading">Memuat...</div></div>
+    </main>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://icqabcbjhmzytvajtfst.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcWFiY2JqaG16eXR2YWp0ZnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTU2NjcsImV4cCI6MjEwNTQ3MTY2N30.h-ui5M9g5EKFVl6TrT_iSM1W4yErgpDKyv3BIzUTt-U";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Client terpisah, TANPA simpan sesi - dipakai khusus buat bikin akun staff
+// baru lewat signUp(), supaya sesi admin yang lagi login gak ketimpa/kelogout.
+const inviteClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false }
+});
+
+// ---------------------------------------------------------
+// SHARED HELPERS
+// ---------------------------------------------------------
+const APP_VERSION = "2026-10-07-02";
+
+const APP_MENUS = [
+  { title: "POS Penjualan", icon: "🧾", href: "pos-penjualan.html", roles: ["admin_organisasi", "admin_toko", "kasir"] },
+  { title: "Penjualan", icon: "💰", href: "penjualan.html", roles: ["admin_organisasi", "admin_toko"] },
+  { title: "Stok", icon: "📦", href: "stok.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Pembelian", icon: "🛒", href: "pembelian.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Transfer Stok", icon: "🔄", href: "transfer-stok.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Stok Opname", icon: "📋", href: "stok-opname.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Laporan", icon: "📊", href: "laporan.html", roles: ["admin_organisasi", "admin_toko"] },
+  { title: "Master Barang", icon: "🏷️", href: "menu.html", roles: ["admin_organisasi", "admin_toko"] },
+  { title: "Daftar Toko", icon: "🏬", href: "daftar-toko.html", roles: ["super_admin", "admin_organisasi"] },
+  { title: "Pengguna", icon: "👥", href: "pengguna.html", roles: ["super_admin", "admin_organisasi", "admin_toko"] },
+];
+
+function initAppShell() {
+  const role = sessionStorage.getItem("smarterp_role");
+  const currentPage = window.location.pathname.split("/").pop();
+  const isShiftHolder = ["kepala_toko", "asisten_toko", "merchandiser"].includes(role);
+  const links = [{ title: "Dashboard", icon: "⌂", href: "dashboard.html" }, ...APP_MENUS.filter(menu => !role || menu.roles.includes(role) || (isShiftHolder && menu.href !== "daftar-toko.html"))];
+  document.getElementById("sidebarNav").innerHTML = links.map(menu => `
+    <a class="nav-item ${menu.href === currentPage ? "active" : ""}" href="${menu.href}" ${menu.href === currentPage ? 'aria-current="page"' : ""}>
+      <span class="nav-icon">${menu.icon}</span><span class="nav-text">${menu.title}</span>
+    </a>
+  `).join("");
+}
+
+function toggleSidebar() {
+  const shell = document.querySelector(".app-shell");
+  const button = document.getElementById("sidebarToggleBtn");
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
+  const isOpen = isMobile
+    ? shell.classList.toggle("sidebar-open")
+    : (shell.classList.toggle("sidebar-collapsed"), !shell.classList.contains("sidebar-collapsed"));
+  button.setAttribute("aria-expanded", String(isOpen));
+  button.setAttribute("aria-label", isOpen ? "Tutup sidebar" : "Buka sidebar");
+  button.title = isOpen ? "Tutup sidebar" : "Buka sidebar";
+}
+initAppShell();
+
+function applyThemeIcon() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const btn = document.getElementById('themeToggleBtn');
+  if (!btn) return;
+  btn.textContent = current === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  let next;
+  if (!current) next = 'light';
+  else if (current === 'light') next = 'dark';
+  else next = null;
+  if (next) { html.setAttribute('data-theme', next); localStorage.setItem('smarterp_theme', next); }
+  else { html.removeAttribute('data-theme'); localStorage.removeItem('smarterp_theme'); }
+  applyThemeIcon();
+}
+function updateOnlineStatus() {
+  const dot = document.getElementById('onlineDot');
+  const text = document.getElementById('onlineText');
+  if (!dot || !text) return;
+  const online = navigator.onLine;
+  dot.style.background = online ? 'var(--success)' : 'var(--danger)';
+  text.textContent = online ? 'Online' : 'Offline';
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+async function checkForUpdate() {
+  if (!navigator.onLine) return;
+  try {
+    const res = await fetch(window.location.pathname + '?_=' + Date.now(), { cache: 'no-store' });
+    const html = await res.text();
+    const match = html.match(/app-version"\s+content="([^"]+)"/);
+    if (match && match[1] !== APP_VERSION) showUpdateBanner();
+  } catch (e) {}
+}
+function showUpdateBanner() {
+  if (document.getElementById('updateBanner')) return;
+  const b = document.createElement('div');
+  b.id = 'updateBanner'; b.className = 'update-banner';
+  b.innerHTML = 'Ada pembaruan halaman ini. <button onclick="location.reload()">Muat ulang</button>';
+  document.body.appendChild(b);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
+window.addEventListener('focus', checkForUpdate);
+setInterval(checkForUpdate, 60000);
+document.addEventListener('DOMContentLoaded', () => { applyThemeIcon(); updateOnlineStatus(); });
+
+async function requireLogin() {
+  const { data } = await supabaseClient.auth.getSession();
+  if (!data.session) { window.location.href = "index.html"; return null; }
+  return data.session;
+}
+async function logoutUser() {
+  await supabaseClient.auth.signOut();
+  sessionStorage.clear();
+  window.location.href = "index.html";
+}
+
+// ---------------------------------------------------------
+// HALAMAN PENGGUNA
+// ---------------------------------------------------------
+const ROLE_LABEL = {
+  super_admin: "Super Admin",
+  admin_organisasi: "Admin Organisasi",
+  admin_toko: "Admin Toko",
+  kepala_toko: "Kepala Toko",
+  asisten_toko: "Asisten Toko",
+  merchandiser: "Merchandiser",
+  kasir: "Kasir",
+  staff_gudang: "Staff Gudang",
+};
+
+let myRole = null;
+let myOrgId = null;
+let myStoreId = null;
+let orgStores = [];
+
+function renderError(message) {
+  document.getElementById("mainContent").innerHTML = `<div class="error-box">${message}</div>`;
+}
+
+function roleOptionsFor(role) {
+  if (["admin_organisasi", "super_admin"].includes(role)) {
+    return [
+      { value: "admin_toko", label: "Admin Toko (penanggung jawab 1 toko)" },
+      { value: "kepala_toko", label: "Kepala Toko (PIC shift & back office)" },
+      { value: "asisten_toko", label: "Asisten Toko (PIC shift & back office)" },
+      { value: "merchandiser", label: "Merchandiser (PIC shift & back office)" },
+      { value: "kasir", label: "Kasir / Pramuniaga (hanya POS Penjualan)" },
+      { value: "staff_gudang", label: "Staff Gudang (stok, pembelian, transfer)" },
+    ];
+  }
+  // admin_toko cuma boleh bikin staff di tokonya sendiri
+  return [
+    { value: "kasir", label: "Kasir / Pramuniaga (hanya POS Penjualan)" },
+    { value: "staff_gudang", label: "Staff Gudang (stok, pembelian, transfer)" },
+  ];
+}
+
+function renderUserList(users) {
+  if (users.length === 0) return `<div class="empty-state">Belum ada pengguna lain.</div>`;
+  return users.map(u => `
+    <div class="user-card">
+      <div>
+        <div class="name">${u.full_name || "(tanpa nama)"}</div>
+        <div class="email">${u.email || "-"}</div>
+        <div class="meta">${u.store_code ? u.store_code + " - " + u.store_name : "Semua toko"}</div>
+      </div>
+      <span class="role-chip">${ROLE_LABEL[u.role] || u.role}</span>
+    </div>
+  `).join("");
+}
+
+function renderForm() {
+  if (["admin_toko", "kepala_toko", "asisten_toko", "merchandiser"].includes(myRole) && !myStoreId) {
+    return `<div class="empty-state">Akun kamu belum di-assign ke toko mana pun, belum bisa menambah staff.</div>`;
+  }
+
+  const roles = roleOptionsFor(myRole);
+  const roleOptionsHtml = roles.map(r => `<option value="${r.value}">${r.label}</option>`).join("");
+
+  const storeFieldHtml = (myRole === "admin_organisasi" || myRole === "super_admin")
+    ? `
+      <div class="field" id="storeFieldWrap">
+        <label>Toko</label>
+        <select id="newUserStore" required>
+          ${orgStores.map(s => `<option value="${s.id}">${s.store_code} - ${s.name}</option>`).join("")}
+        </select>
+      </div>
+    `
+    : `<input type="hidden" id="newUserStore" value="${myStoreId}" />`;
+
+  return `
+    <div class="section-title">Tambah Pengguna</div>
+    <div class="form-card">
+      <div id="alertBox" class="alert"></div>
+      <form id="formUser">
+        <div class="field">
+          <label>Nama Lengkap</label>
+          <input type="text" id="newUserName" required placeholder="Nama staff" />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="newUserEmail" required placeholder="staff@email.com" />
+        </div>
+        <div class="field">
+          <label>Password Awal</label>
+          <input type="text" id="newUserPassword" required minlength="6" placeholder="Minimal 6 karakter" />
+          <div class="field-hint">Kasih tau password ini ke staff-nya langsung. Dia bisa ganti nanti.</div>
+        </div>
+        <div class="field">
+          <label>Role</label>
+          <select id="newUserRole">${roleOptionsHtml}</select>
+        </div>
+        ${storeFieldHtml}
+        <button type="submit" class="btn-primary" id="submitUserBtn">Tambah Pengguna</button>
+      </form>
+    </div>
+  `;
+}
+
+async function onSubmitUser(e) {
+  e.preventDefault();
+  const btn = document.getElementById("submitUserBtn");
+  const alertBox = document.getElementById("alertBox");
+  btn.disabled = true; btn.textContent = "Menyimpan...";
+  alertBox.className = "alert";
+
+  const fullName = document.getElementById("newUserName").value.trim();
+  const email = document.getElementById("newUserEmail").value.trim();
+  const password = document.getElementById("newUserPassword").value;
+  const role = document.getElementById("newUserRole").value;
+  const storeId = document.getElementById("newUserStore").value;
+
+  try {
+    const { data: signUpData, error: signUpError } = await inviteClient.auth.signUp({ email, password });
+    if (signUpError) throw signUpError;
+    if (!signUpData.user) throw new Error("Gagal membuat akun staff.");
+
+    const { error: rpcError } = await supabaseClient.rpc("invite_user", {
+      target_user_id: signUpData.user.id,
+      full_name: fullName,
+      email: email,
+      new_role: role,
+      target_store_id: storeId,
+    });
+    if (rpcError) throw rpcError;
+
+    alertBox.innerHTML = `
+      <div class="credential-box">
+        Pengguna berhasil dibuat. Info login untuk staff:<br />
+        Email: <code>${email}</code><br />
+        Password: <code>${password}</code>
+      </div>
+    `;
+    alertBox.className = "alert show alert-success";
+
+    await loadUsers();
+  } catch (err) {
+    alertBox.textContent = err.message || "Gagal menambah pengguna.";
+    alertBox.className = "alert show alert-error";
+  } finally {
+    btn.disabled = false; btn.textContent = "Tambah Pengguna";
+  }
+}
+
+async function loadUsers() {
+  let query = supabaseClient
+    .from("profiles")
+    .select("id, full_name, email, role, store_id, stores(name, store_code)")
+    .eq("organization_id", myOrgId);
+
+  if (["admin_toko", "kepala_toko", "asisten_toko", "merchandiser"].includes(myRole)) {
+    query = query.eq("store_id", myStoreId);
+  }
+
+  const { data: users, error } = await query.order("created_at", { ascending: true });
+  if (error) { renderError("Gagal memuat daftar pengguna: " + error.message); return; }
+
+  const mapped = (users || []).map(u => ({
+    full_name: u.full_name,
+    email: u.email,
+    role: u.role,
+    store_name: u.stores ? u.stores.name : null,
+    store_code: u.stores ? u.stores.store_code : null,
+  }));
+
+  document.getElementById("mainContent").innerHTML = `
+    <div class="section-title">Pengguna (${mapped.length})</div>
+    ${renderUserList(mapped)}
+    ${renderForm()}
+  `;
+
+  const form = document.getElementById("formUser");
+  if (form) form.addEventListener("submit", onSubmitUser);
+}
+
+async function init() {
+  const session = await requireLogin();
+  if (!session) return;
+
+  const { data: profile, error } = await supabaseClient
+    .from("profiles")
+    .select("role, organization_id, store_id")
+    .eq("id", session.user.id)
+    .maybeSingle();
+
+  if (error || !profile) { renderError("Gagal memuat profil."); return; }
+
+  if (!["admin_organisasi", "admin_toko", "super_admin", "kepala_toko", "asisten_toko", "merchandiser"].includes(profile.role)) {
+    renderError("Halaman ini khusus untuk Admin Organisasi / Admin Toko.");
+    return;
+  }
+
+  myRole = profile.role;
+  myOrgId = profile.organization_id;
+  myStoreId = profile.store_id;
+
+  if (myRole === "admin_organisasi" || myRole === "super_admin") {
+    const { data: stores } = await supabaseClient
+      .from("stores").select("id, name, store_code").eq("organization_id", myOrgId);
+    orgStores = stores || [];
+  }
+
+  await loadUsers();
+}
+
+init();
+</script>
+
+</body>
+</html>

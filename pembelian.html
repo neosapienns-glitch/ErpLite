@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<meta name="app-version" content="2026-10-07-02" />
+<title>SmarterERP Lite - Pembelian</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  const saved = localStorage.getItem('smarterp_theme');
+  if (saved === 'light' || saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', saved);
+  }
+})();
+</script>
+<style>
+:root {
+  --primary: #16856b; --primary-dark: #116b56; --bg: #f2f5f2; --card-bg: #ffffff;
+  --text: #1f2937; --text-muted: #6b7280; --border: #dce4df; --danger: #d93025; --success: #188038;
+  --purchase-screen-bg: #edf3ef; --purchase-register-bg: #f1f4f1; --purchase-text: #183b31;
+  --purchase-text-strong: #263b30; --purchase-text-muted: #53645a; --purchase-text-soft: #748077;
+  --purchase-panel: #e3e8e4; --purchase-panel-head: #d3dcd5; --purchase-panel-card: #fafbfa;
+  --purchase-table-bg: #ffffff; --purchase-control-bg: #ffffff; --purchase-border: #d7dfd9;
+  --purchase-control-border: #cbd2cd; --purchase-row-alt: #fbfcfb; --purchase-table-head: #285242;
+  --purchase-footer-bg: #e0e8e1; --purchase-footer-text: #59645e;
+  --purchase-active-gradient: linear-gradient(110deg, #174c38, #167456); --purchase-active-border: #17684c;
+  --purchase-accent: #246748; --purchase-accent-hover: #316b52; --purchase-discount: #4c8257;
+  --purchase-discount-hover: #3d7048; --purchase-price: #3d7650; --purchase-discount-text: #4b7157;
+  --radius: 10px;
+  --emboss-shadow: 0 5px 12px rgba(17,59,45,.08), inset 0 1px rgba(255,255,255,.92), inset 0 -1px rgba(17,59,45,.04);
+  --emboss-hover-shadow: 0 8px 16px rgba(17,59,45,.12), inset 0 1px rgba(255,255,255,.92), inset 0 -1px rgba(17,59,45,.04);
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#15181f; --card-bg:#1f232c; --text:#e8eaed; --text-muted:#9aa0a6; --border:#353a45;
+    --purchase-screen-bg: #15181f; --purchase-register-bg: #1b211e; --purchase-text: #e8eaed;
+    --purchase-text-strong: #e8eee9; --purchase-text-muted: #b4c0b8; --purchase-text-soft: #929f97;
+    --purchase-panel: #202a25; --purchase-panel-head: #2c3831; --purchase-panel-card: #1f2923;
+    --purchase-table-bg: #1f232c; --purchase-control-bg: #1f232c; --purchase-border: #3b4942;
+    --purchase-control-border: #46534b; --purchase-row-alt: #242d27; --purchase-table-head: #26493a;
+    --purchase-footer-bg: #212a24; --purchase-footer-text: #b6c3ba;
+    --purchase-active-gradient: linear-gradient(110deg, #173d2e, #17674c); --purchase-active-border: #267b59;
+    --purchase-accent: #266247; --purchase-accent-hover: #307753; --purchase-discount: #236748;
+    --purchase-discount-hover: #1c593d; --purchase-price: #84cca0; --purchase-discount-text: #8fc9a2;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#15181f; --card-bg:#1f232c; --text:#e8eaed; --text-muted:#9aa0a6; --border:#353a45;
+  --purchase-screen-bg: #15181f; --purchase-register-bg: #1b211e; --purchase-text: #e8eaed;
+  --purchase-text-strong: #e8eee9; --purchase-text-muted: #b4c0b8; --purchase-text-soft: #929f97;
+  --purchase-panel: #202a25; --purchase-panel-head: #2c3831; --purchase-panel-card: #1f2923;
+  --purchase-table-bg: #1f232c; --purchase-control-bg: #1f232c; --purchase-border: #3b4942;
+  --purchase-control-border: #46534b; --purchase-row-alt: #242d27; --purchase-table-head: #26493a;
+  --purchase-footer-bg: #212a24; --purchase-footer-text: #b6c3ba;
+  --purchase-active-gradient: linear-gradient(110deg, #173d2e, #17674c); --purchase-active-border: #267b59;
+  --purchase-accent: #266247; --purchase-accent-hover: #307753; --purchase-discount: #236748;
+  --purchase-discount-hover: #1c593d; --purchase-price: #84cca0; --purchase-discount-text: #8fc9a2;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100%; font-family: "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --emboss-shadow: 0 5px 14px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.05), inset 0 -1px rgba(0,0,0,.2); --emboss-hover-shadow: 0 8px 18px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.06), inset 0 -1px rgba(0,0,0,.24); } }
+:root[data-theme="dark"] { --emboss-shadow: 0 5px 14px rgba(0,0,0,.24), inset 0 1px rgba(255,255,255,.05), inset 0 -1px rgba(0,0,0,.2); --emboss-hover-shadow: 0 8px 18px rgba(0,0,0,.3), inset 0 1px rgba(255,255,255,.06), inset 0 -1px rgba(0,0,0,.24); }
+.entry-card, .history-item { box-shadow: var(--emboss-shadow); transition: box-shadow .18s ease, transform .18s ease; }
+.entry-card:hover, .history-item:hover { transform: translateY(-1px); box-shadow: var(--emboss-hover-shadow); }
+.app-shell { min-height: 100vh; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+.app-shell.sidebar-collapsed { grid-template-columns: 76px minmax(0, 1fr); }
+.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 24px 16px 16px; background: linear-gradient(155deg, #214c40 0%, #183b34 52%, #122f2a 100%); color: #f3f7f4; }
+.sidebar-brand { display: flex; align-items: center; gap: 11px; padding: 0 10px 26px; }
+.brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.68); border-radius: 10px; background: linear-gradient(145deg, #f4fff9, #a9d9c4); color: #155e4c; font-size: 18px; font-weight: 800; flex: 0 0 auto; box-shadow: 3px 4px 7px rgba(0,0,0,.3), inset 1px 1px rgba(255,255,255,.95), inset -2px -2px rgba(21,94,76,.18); text-shadow: 0 1px rgba(255,255,255,.8); }
+.brand-copy strong { display: block; font-size: 15px; }
+.brand-copy small { display: block; margin-top: 3px; color: #afc9bf; font-size: 11px; }
+.sidebar-label { padding: 0 11px; margin: 0 0 8px; color: #9cb9ae; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.sidebar-nav { display: grid; gap: 4px; }
+.nav-item { display: flex; align-items: center; gap: 11px; min-height: 42px; padding: 9px 11px; border-radius: 6px; color: #d9e8e1; text-decoration: none; font-size: 13px; font-weight: 600; }
+.nav-item:hover, .nav-item.active { background: #2a564a; color: #fff; }
+.nav-item.active { box-shadow: inset 3px 0 #9de2c7; }
+.nav-icon { width: 30px; height: 30px; display: grid; place-items: center; flex: 0 0 auto; border: 1px solid rgba(224,248,237,.24); border-radius: 8px; background: linear-gradient(145deg, rgba(238,255,246,.22), rgba(94,143,122,.1)); color: #e8fff4; text-align: center; font-size: 16px; text-shadow: 0 1px 2px rgba(0,0,0,.48); box-shadow: 3px 4px 6px rgba(0,0,0,.22), inset 1px 1px rgba(255,255,255,.18), inset -2px -2px rgba(0,0,0,.12); transform: perspective(80px) rotateY(-7deg); transition: transform .18s ease, box-shadow .18s ease; }
+.nav-item:hover .nav-icon, .nav-item.active .nav-icon { transform: perspective(80px) rotateY(-7deg) translateY(-1px); box-shadow: 3px 5px 8px rgba(0,0,0,.3), inset 1px 1px rgba(255,255,255,.26), inset -2px -2px rgba(0,0,0,.12); }
+.sidebar-footer { margin-top: auto; padding: 14px 10px 2px; border-top: 1px solid #31584e; color: #b6cdc4; font-size: 11px; }
+.sidebar-collapsed .sidebar { padding-right: 10px; padding-left: 10px; }
+.sidebar-collapsed .sidebar-brand { justify-content: center; padding-right: 0; padding-left: 0; }
+.sidebar-collapsed .brand-copy, .sidebar-collapsed .sidebar-label, .sidebar-collapsed .sidebar-footer, .sidebar-collapsed .nav-text { display: none; }
+.sidebar-collapsed .nav-item { justify-content: center; padding-right: 6px; padding-left: 6px; }
+.sidebar-collapsed .nav-item.active { box-shadow: inset 0 0 0 1px #9de2c7; }
+.workspace { min-width: 0; }
+.page-topbar { position: sticky; top: 0; z-index: 10; min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 28px; padding-top: calc(15px + env(safe-area-inset-top, 0px)); background: var(--card-bg); border-bottom: 1px solid var(--border); }
+.page-title { font-size: 17px; font-weight: 700; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.sidebar-toggle-btn { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: 7px; background: transparent; color: var(--text); cursor: pointer; font-size: 19px; }
+.sidebar-toggle-btn:hover { background: var(--bg); }
+.page-content { max-width: 1440px; margin: 0 auto; padding: 28px; }
+@media (max-width: 900px) { .app-shell { grid-template-columns: 206px minmax(0, 1fr); } .app-shell.sidebar-collapsed { grid-template-columns: 68px minmax(0, 1fr); } .page-topbar { padding-right: 22px; padding-left: 22px; } .page-content { padding: 22px; } }
+@media (max-width: 640px) {
+  .app-shell { display: flex; flex-direction: column; }
+  .sidebar { display: none; position: static; height: auto; padding: 12px; }
+  .app-shell.sidebar-open .sidebar { display: flex; }
+  .sidebar-brand { padding: 0 4px 12px; }
+  .sidebar-label, .sidebar-footer { display: none; }
+  .sidebar-nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+  .nav-item { min-height: 38px; padding: 8px 10px; }
+  .sidebar-collapsed .brand-copy, .sidebar-collapsed .nav-text { display: block; }
+  .sidebar-collapsed .sidebar-brand { justify-content: flex-start; padding: 0 4px 12px; }
+  .sidebar-collapsed .nav-item { justify-content: flex-start; padding: 8px 10px; }
+  .sidebar-collapsed .nav-item.active { box-shadow: inset 3px 0 #9de2c7; }
+  .page-topbar { min-height: 62px; padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top, 0px)); }
+  .page-title { font-size: 15px; }
+  .page-content { padding: 18px 14px 28px; }
+}
+
+.topbar {
+  position: sticky; top: 0; padding: 14px 16px; padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  background: var(--card-bg); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 10;
+}
+.topbar-left { display: flex; flex-direction: column; min-width: 0; }
+.topbar-left .brand { font-weight: 700; color: var(--primary); font-size: 15px; }
+.back-link { font-size: 12px; color: var(--text-muted); text-decoration: none; }
+.status-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+.theme-toggle-btn, .logout-btn {
+  border: 1px solid var(--border); background: transparent; color: var(--text);
+  border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.theme-toggle-btn { width: 32px; height: 32px; font-size: 14px; }
+.logout-btn { padding: 8px 12px; font-size: 13px; color: var(--text-muted); }
+.logout-btn:hover { background: var(--bg); }
+
+.subtabs { display: flex; gap: 6px; overflow-x: auto; padding: 10px 28px; background: var(--card-bg); border-bottom: 1px solid var(--border); }
+.subtab-btn {
+  padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--card-bg); color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.subtab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.container { max-width: 1440px; margin: 0 auto; padding: 0; }
+.section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin: 4px 0 10px; letter-spacing: 0.04em; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.field input, .field select {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+  font-size: 14px; background: var(--card-bg); color: var(--text);
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--primary); }
+.field-row { display: flex; gap: 10px; }
+.field-row .field { flex: 1; }
+
+/* Dua kolom: Dokumen Pembelian (kiri) + Tambah Barang (kanan) biar hemat halaman */
+.form-top-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  align-items: start; margin-bottom: 4px;
+}
+.form-col { min-width: 0; }
+@media (max-width: 1000px) { .form-top-grid { grid-template-columns: 1fr; gap: 4px; } }
+
+.purchase-screen { color: var(--text); }
+.purchase-page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin: 0 0 18px; }
+.purchase-page-head h1 { margin: 0; font-size: 21px; }
+.purchase-page-head p { margin: 4px 0 0; color: var(--text-muted); font-size: 12px; }
+.purchase-eyebrow { color: var(--primary); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.purchase-reference { color: var(--text-muted); font-size: 11px; }
+.purchase-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(340px, .9fr); gap: 16px; align-items: start; }
+.purchase-catalog { min-width: 0; }
+.catalog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.catalog-head h2, .purchase-cart-head h2 { margin: 0; font-size: 15px; }
+.catalog-head p, .purchase-cart-head p { margin: 3px 0 0; color: var(--text-muted); font-size: 11px; }
+.catalog-tools { display: flex; gap: 7px; min-width: min(320px, 55%); }
+.catalog-tools input { min-width: 0; width: 100%; height: 38px; padding: 0 11px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text); }
+.catalog-tools .scan-btn { width: 40px; border-radius: 6px; }
+.purchase-product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; }
+.purchase-product { min-width: 0; min-height: 112px; display: flex; flex-direction: column; align-items: stretch; padding: 11px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text); text-align: left; cursor: pointer; }
+.purchase-product:hover { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 4%, var(--card-bg)); }
+.purchase-product-code { color: var(--text-muted); font-size: 10px; }
+.purchase-product-name { margin: 7px 0 auto; font-size: 12px; font-weight: 700; line-height: 1.35; }
+.purchase-product-foot { display: flex; align-items: flex-end; justify-content: space-between; gap: 6px; margin-top: 10px; }
+.purchase-product-price { color: var(--primary-dark); font-size: 12px; font-weight: 800; white-space: nowrap; }
+.purchase-product-unit { color: var(--text-muted); font-size: 10px; }
+.purchase-empty { grid-column: 1 / -1; padding: 28px 14px; border: 1px dashed var(--border); color: var(--text-muted); text-align: center; font-size: 12px; }
+.purchase-cart { position: sticky; top: 162px; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 7px; background: var(--card-bg); box-shadow: var(--emboss-shadow); }
+.purchase-cart-head { padding: 14px 15px; border-bottom: 1px solid var(--border); }
+.purchase-cart-head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.purchase-cart-count { color: var(--text-muted); font-size: 11px; }
+.purchase-document { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; padding: 12px 15px; border-bottom: 1px solid var(--border); background: var(--bg); }
+.purchase-document .field { min-width: 0; margin: 0; }
+.purchase-document .field:first-child, .purchase-document .field:last-child { grid-column: 1 / -1; }
+.purchase-document .field label { font-size: 10px; }
+.purchase-document .field input, .purchase-document .field select { padding: 8px 9px; font-size: 12px; }
+.purchase-cart-items { max-height: min(42vh, 390px); min-height: 126px; overflow: auto; padding: 0 14px; }
+.purchase-cart-items .readonly-hint { margin: 12px 0; text-align: center; }
+.invoice-table { margin: 0; }
+.invoice-table th { position: sticky; top: 0; background: var(--card-bg); }
+.invoice-table td { padding: 9px 4px; }
+.invoice-table input { width: 72px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 5px; background: var(--card-bg); color: var(--text); text-align: right; font-size: 11px; }
+.invoice-table input.qty-input { width: 58px; }
+.invoice-table .row-delete-btn { width: 27px; height: 27px; }
+.purchase-summary { padding: 12px 15px 4px; border-top: 1px solid var(--border); }
+.purchase-summary-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 7px 0; color: var(--text-muted); font-size: 12px; }
+.purchase-summary-row input { width: 76px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--card-bg); color: var(--text); text-align: right; }
+.purchase-summary-row.grand { padding-top: 9px; border-top: 1px solid var(--border); color: var(--text); font-size: 15px; font-weight: 800; }
+.purchase-submit { margin: 8px 15px 15px; width: calc(100% - 30px); }
+@media (max-width: 1000px) { .purchase-layout { grid-template-columns: minmax(0, 1fr) minmax(300px, .9fr); } .purchase-cart { top: 150px; } }
+@media (max-width: 760px) {
+  .purchase-layout { grid-template-columns: 1fr; }
+  .purchase-cart { position: static; grid-row: 1; }
+  .purchase-cart-items { max-height: 340px; }
+  .purchase-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .purchase-page-head { align-items: flex-start; flex-direction: column; }
+  .catalog-head { align-items: stretch; flex-direction: column; }
+  .catalog-tools { width: 100%; min-width: 0; }
+  .purchase-document { grid-template-columns: 1fr 1fr; }
+  .purchase-product-grid { gap: 6px; }
+  .purchase-product { min-height: 105px; padding: 9px; }
+  .purchase-cart-items { padding: 0 9px; }
+  .invoice-table { font-size: 10px; }
+  .invoice-table input { width: 62px; }
+  .invoice-table input.qty-input { width: 50px; }
+}
+
+.page-content:has(.purchase-screen) { max-width: none; height: calc(100dvh - 220px); min-height: 430px; padding: 0; }
+.page-content:has(.purchase-screen) .container { max-width: none; height: 100%; }
+.purchase-screen { width: 100%; height: 100%; min-height: 430px; display: grid; grid-template-columns: 66px minmax(0, 1fr); background: #edf3ef; color: #183b31; }
+.purchase-quick-rail { display: flex; flex-direction: column; gap: 6px; padding: 10px 7px; background: #173f33; }
+.purchase-quick-rail button { min-height: 57px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 1px solid #42695a; border-radius: 5px; background: #245343; color: #fff; cursor: pointer; }
+.purchase-quick-rail button:hover { background: #316b52; }
+.purchase-quick-rail button span { font-size: 19px; line-height: 1; }
+.purchase-quick-rail button small { font-size: 9px; }
+.purchase-quick-rail .cancel-action { margin-top: auto; border-color: #b96a60; background: #a8473d; }
+.purchase-register { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; background: #f1f4f1; }
+.purchase-register-header { display: grid; grid-template-columns: minmax(160px, .55fr) minmax(280px, 2fr); align-items: stretch; gap: 10px; padding: 11px 12px 8px; }
+.purchase-register-meta { align-self: center; min-width: 0; color: #53645a; font-size: 11px; }
+.purchase-register-meta .eyebrow { margin: 0 0 5px; color: #247150; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.purchase-register-meta strong { display: block; overflow: hidden; color: #263b30; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.purchase-register-meta small { display: block; margin-top: 5px; color: #748077; font-size: 10px; }
+.purchase-active-display { min-width: 0; min-height: 82px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border: 1px solid #17684c; border-radius: 7px; background: linear-gradient(110deg, #174c38, #167456); color: #fff; box-shadow: inset 0 1px #ffffff35, 0 3px 8px #16432c25; }
+.purchase-active-item { min-width: 0; display: grid; gap: 3px; }
+.purchase-active-item small { color: #b7ddc6; font-size: 9px; font-weight: 800; }
+.purchase-active-item strong { overflow: hidden; color: #fff; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.purchase-active-item span { color: #d0e6d8; font-size: 11px; }
+.purchase-active-total { flex: 0 0 auto; color: #d2f16a; font-size: 38px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.purchase-entry-tools { position: relative; z-index: 5; display: flex; gap: 8px; padding: 0 12px 8px; }
+.purchase-search-wrap { position: relative; flex: 1; min-width: 0; }
+.purchase-search-wrap input { width: 100%; height: 40px; padding: 0 42px; border: 1px solid #cbd7cf; border-radius: 5px; background: #fff; color: #263a30; font-size: 12px; }
+.purchase-search-wrap input:focus { outline: 2px solid #16856b25; border-color: #16856b; }
+.purchase-search-icon { position: absolute; left: 13px; top: 7px; color: #718078; font-size: 20px; }
+.purchase-search-shortcut { position: absolute; top: 10px; right: 10px; padding: 2px 5px; border: 1px solid #dce4df; border-radius: 4px; color: #718078; font-size: 9px; }
+.purchase-scan-btn { min-width: 105px; border: 1px solid #245b43; border-radius: 5px; background: #246748; color: #fff; font-size: 11px; font-weight: 700; cursor: pointer; }
+.purchase-scan-btn .scan-icon { margin-right: 4px; font-size: 14px; }
+.purchase-search-results { position: absolute; top: calc(100% + 3px); left: 0; right: 0; z-index: 15; max-height: min(320px, 45vh); overflow: auto; border: 1px solid #cbd4ce; border-radius: 4px; background: #fff; box-shadow: 0 10px 24px #14251c24; }
+.purchase-search-results[hidden] { display: none; }
+.purchase-search-result { width: 100%; min-height: 46px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 10px; padding: 7px 10px; border: 0; border-bottom: 1px solid #e7ece8; background: #fff; color: #26382f; text-align: left; cursor: pointer; }
+.purchase-search-result:hover { background: #edf5ef; }
+.purchase-search-result strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.purchase-search-result small { color: #79857d; font-size: 10px; }
+.purchase-search-result .result-price { grid-column: 2; grid-row: 1 / 3; color: #3d7650; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.purchase-search-empty { padding: 10px; color: #78837c; font-size: 11px; }
+.purchase-sale-area { min-height: 0; display: grid; grid-template-columns: 205px minmax(0, 1fr); gap: 8px; padding: 0 12px 9px; overflow: hidden; }
+.purchase-supplier-panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; background: #e3e8e4; }
+.purchase-dock-heading, .purchase-table-heading { min-height: 30px; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 8px; color: #3f4b45; font-size: 11px; }
+.purchase-dock-heading { background: #d3dcd5; }
+.purchase-dock-heading span, .purchase-table-heading span { color: #78817c; font-size: 9px; }
+.purchase-supplier-content { display: flex; flex-direction: column; gap: 7px; padding: 8px; overflow: auto; }
+.purchase-supplier-content .field { min-width: 0; margin: 0; }
+.purchase-supplier-content .field label, .purchase-discount-card > span { color: #77817b; font-size: 9px; font-weight: 800; }
+.purchase-supplier-content .field input, .purchase-supplier-content .field select { width: 100%; min-height: 30px; padding: 4px 6px; border: 1px solid #cbd2cd; border-radius: 3px; background: #fff; color: #35423b; font-size: 10px; }
+.purchase-discount-card { display: flex; flex-direction: column; gap: 6px; padding: 8px; border: 1px solid #d4dad6; background: #fafbfa; }
+.purchase-discount-card strong { color: #35423b; font-size: 10px; }
+.purchase-discount-row { display: flex; gap: 5px; }
+.purchase-discount-row input { width: 0; min-width: 0; flex: 1; padding: 5px 6px; border: 1px solid #cbd2cd; border-radius: 3px; background: #fff; color: #35423b; text-align: right; font-size: 10px; }
+.purchase-discount-row button { min-height: 28px; padding: 4px 7px; border: 1px solid #48845c; border-radius: 3px; background: #4c8257; color: #fff; font-size: 9px; font-weight: 700; cursor: pointer; }
+.purchase-discount-card .clear-discount { min-height: 24px; border: 0; background: transparent; color: #8a5247; font-size: 9px; cursor: pointer; }
+.purchase-notes-field input { font-size: 10px !important; }
+.purchase-sales-table-wrap { position: relative; min-width: 0; min-height: 0; overflow: auto; border: 1px solid #d7dfd9; background: #fff; }
+.purchase-table-heading { position: sticky; top: 0; z-index: 2; background: #e8eee9; border-bottom: 1px solid #d7dfd9; }
+.purchase-sales-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10px; }
+.purchase-sales-table th { position: sticky; top: 30px; z-index: 1; padding: 7px; background: #285242; color: #fff; text-align: left; font-size: 9px; font-weight: 700; }
+.purchase-sales-table th:nth-child(1) { width: 9%; }
+.purchase-sales-table th:nth-child(2) { width: 30%; }
+.purchase-sales-table th:nth-child(3) { width: 16%; text-align: right; }
+.purchase-sales-table th:nth-child(4) { width: 15%; text-align: center; }
+.purchase-sales-table th:nth-child(5) { width: 13%; text-align: right; }
+.purchase-sales-table th:nth-child(6) { width: 15%; text-align: right; }
+.purchase-sales-table th:nth-child(7) { width: 5%; }
+.purchase-sales-table td { padding: 7px; border-bottom: 1px solid #e8ede9; color: #37413b; overflow-wrap: anywhere; }
+.purchase-sales-table td:nth-child(3), .purchase-sales-table td:nth-child(5), .purchase-sales-table td:nth-child(6) { text-align: right; white-space: nowrap; }
+.purchase-sales-table td:nth-child(4) { text-align: center; }
+.purchase-sales-table tbody tr:nth-child(even) td { background: #fbfcfb; }
+.purchase-sales-table .purchase-line-name { color: #303a34; font-size: 11px; font-weight: 700; }
+.purchase-sales-table .purchase-line-plu { color: #78837d; font-size: 9px; font-variant-numeric: tabular-nums; }
+.purchase-sales-table .purchase-line-mobile-plu { display: none; }
+.purchase-sales-table .purchase-line-meta { margin-top: 3px; color: #78837d; font-size: 9px; }
+.purchase-sales-table .purchase-qty-control { display: flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap; }
+.purchase-sales-table .purchase-qty-input { width: 56px; padding: 4px; border: 1px solid #d5ddd7; border-radius: 3px; background: #fff; color: #35423b; text-align: right; font-size: 10px; }
+.purchase-sales-table .purchase-qty-unit { color: #78837d; font-size: 9px; }
+.purchase-sales-table .purchase-discount-cell { color: #4b7157; font-size: 9px; }
+.purchase-sales-table .remove-line { width: 22px; height: 22px; border: 0; background: transparent; color: #b64136; cursor: pointer; }
+.purchase-cart-empty { position: absolute; inset: 56px 0 0; display: grid; place-content: center; color: #7f8983; text-align: center; pointer-events: none; }
+.purchase-cart-empty strong { font-size: 12px; }
+.purchase-cart-empty small { margin-top: 5px; color: #9aa29d; font-size: 10px; }
+.purchase-cart-empty[hidden] { display: none; }
+.purchase-register-footer { display: grid; grid-template-columns: minmax(120px, 1fr) auto auto; align-items: center; gap: 12px; min-height: 68px; padding: 8px 12px; border-top: 1px solid #ccd8cf; background: #e0e8e1; }
+.purchase-footer-status { min-width: 0; color: #59645e; font-size: 10px; }
+.purchase-footer-status strong { color: #3b4941; }
+.purchase-footer-status small { display: block; margin-top: 4px; color: #758078; font-size: 9px; }
+.purchase-footer-totals { display: flex; align-items: center; gap: 14px; color: #68736d; font-size: 9px; }
+.purchase-footer-totals span { display: grid; gap: 3px; }
+.purchase-footer-totals strong { color: #36423b; font-size: 11px; }
+.purchase-footer-totals .footer-total { padding-left: 12px; border-left: 1px solid #c0cbc3; color: #303d35; font-weight: 800; }
+.purchase-footer-totals .footer-total strong { font-size: 19px; }
+.purchase-save-btn { min-width: 142px; min-height: 43px; border: 0; border-radius: 4px; background: #347b53; color: #fff; font-size: 11px; font-weight: 800; cursor: pointer; }
+.purchase-save-btn:hover:not(:disabled) { background: #286543; }
+.purchase-save-btn:disabled { background: #9ca8a0; cursor: not-allowed; }
+@media (max-width: 900px) {
+  .page-content:has(.purchase-screen) { height: calc(100dvh - 218px); min-height: 400px; }
+  .purchase-screen { grid-template-columns: 60px minmax(0, 1fr); }
+  .purchase-sale-area { grid-template-columns: 190px minmax(0, 1fr); gap: 6px; padding-right: 9px; padding-left: 9px; }
+  .purchase-register-header { grid-template-columns: minmax(130px, .55fr) minmax(220px, 2fr); gap: 7px; padding: 9px 9px 7px; }
+  .purchase-register-footer { grid-template-columns: minmax(90px, 1fr) auto auto; gap: 8px; padding-right: 9px; padding-left: 9px; }
+  .purchase-footer-totals { gap: 9px; }
+}
+@media (max-width: 680px) {
+  .page-content:has(.purchase-screen) { height: auto; min-height: calc(100dvh - 220px); }
+  .page-content:has(.purchase-screen) .container { height: auto; min-height: inherit; }
+  .purchase-screen { height: auto; min-height: calc(100dvh - 220px); display: flex; flex-direction: column; }
+  .purchase-quick-rail { flex-direction: row; justify-content: space-around; gap: 4px; padding: 5px; }
+  .purchase-quick-rail button { flex: 1; min-height: 42px; }
+  .purchase-quick-rail .cancel-action { margin-top: 0; }
+  .purchase-quick-rail button span { font-size: 15px; }
+  .purchase-quick-rail button small { font-size: 8px; }
+  .purchase-register { min-height: calc(100dvh - 267px); grid-template-rows: auto auto auto auto; }
+  .purchase-register-header { grid-template-columns: 1fr; gap: 7px; padding: 8px; }
+  .purchase-register-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+  .purchase-register-meta .eyebrow { width: 100%; margin: 0; }
+  .purchase-register-meta small { margin: 0; }
+  .purchase-active-display { min-height: 67px; padding: 9px 12px; }
+  .purchase-active-total { font-size: 30px; }
+  .purchase-entry-tools { gap: 6px; padding: 0 8px 7px; }
+  .purchase-scan-btn { min-width: 42px; font-size: 0; }
+  .purchase-scan-btn .scan-icon { margin: 0; font-size: 16px; }
+  .purchase-scan-btn .scan-label { display: none; }
+  .purchase-sale-area { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(260px, 48vh); gap: 5px; padding: 0 8px 8px; overflow: visible; }
+  .purchase-supplier-content { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; padding: 5px; }
+  .purchase-supplier-content .field:first-child, .purchase-supplier-content .field:last-child { grid-column: 1 / -1; }
+  .purchase-discount-card { min-width: 0; }
+  .purchase-sales-table-wrap { min-height: 260px; }
+  .purchase-sales-table th { padding: 5px 3px; font-size: 8px; }
+  .purchase-sales-table td { padding: 5px 3px; font-size: 9px; }
+  .purchase-sales-table th:nth-child(1) { display: none; }
+  .purchase-sales-table td:nth-child(1) { display: none; }
+  .purchase-sales-table th:nth-child(2) { width: 29%; }
+  .purchase-sales-table th:nth-child(3) { width: 18%; }
+  .purchase-sales-table th:nth-child(4) { width: 22%; }
+  .purchase-sales-table th:nth-child(5) { width: 12%; }
+  .purchase-sales-table th:nth-child(6) { width: 15%; }
+  .purchase-sales-table th:nth-child(7) { width: 4%; }
+  .purchase-sales-table .purchase-line-mobile-plu { display: block; }
+  .purchase-sales-table .purchase-qty-control { gap: 3px; }
+  .purchase-sales-table .purchase-qty-input { width: 48px; padding: 3px; font-size: 9px; }
+  .purchase-sales-table .remove-line { width: 17px; padding: 0; }
+  .purchase-register-footer { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 8px; padding: 7px 8px calc(7px + env(safe-area-inset-bottom, 0px)); }
+  .purchase-footer-status { grid-column: 1 / -1; }
+  .purchase-footer-totals { justify-content: space-between; gap: 7px; }
+  .purchase-footer-totals .footer-total { padding-left: 7px; }
+  .purchase-footer-totals .footer-total strong { font-size: 15px; }
+  .purchase-save-btn { min-width: 104px; min-height: 40px; font-size: 10px; }
+}
+
+.entry-card {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px; margin-bottom: 16px;
+}
+.field-with-btn { display: flex; gap: 6px; }
+.field-with-btn select { flex: 1; }
+.scan-btn {
+  flex-shrink: 0; width: 42px; border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  border-radius: 8px; font-size: 18px; cursor: pointer;
+}
+.readonly-hint { font-size: 12px; color: var(--text-muted); padding: 10px 12px; background: var(--bg); border-radius: 8px; }
+
+.btn-add-row {
+  width: 100%; padding: 11px; background: var(--primary); color: #fff; border: none;
+  border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 4px;
+}
+
+.invoice-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 8px; }
+.invoice-table th {
+  text-align: left; font-size: 10px; text-transform: uppercase; color: var(--text-muted);
+  padding: 6px 4px; border-bottom: 1px solid var(--border);
+}
+.invoice-table th.num, .invoice-table td.num { text-align: right; }
+.invoice-table td { padding: 8px 4px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.invoice-table .item-name { font-weight: 600; }
+.invoice-table .item-plu { color: var(--text-muted); font-size: 10px; }
+.row-delete-btn { border: none; background: transparent; color: var(--danger); font-size: 14px; cursor: pointer; padding: 2px; }
+
+.btn-primary {
+  width: 100%; padding: 13px; background: var(--success); color: #fff; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px;
+}
+.btn-primary:hover { opacity: 0.92; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.grand-total-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 2px; border-top: 2px solid var(--border); margin-bottom: 14px;
+  font-size: 15px; font-weight: 700;
+}
+
+.scanner-overlay {
+  position: fixed; inset: 0; background: #000; z-index: 60;
+  display: flex; flex-direction: column;
+}
+.scanner-video { flex: 1; width: 100%; object-fit: cover; }
+.scanner-close {
+  position: absolute; top: calc(16px + env(safe-area-inset-top, 0px)); right: 16px;
+  width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(255,255,255,0.9);
+  font-size: 16px; cursor: pointer; z-index: 61;
+}
+.scanner-hint {
+  position: absolute; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 16px; right: 16px;
+  text-align: center; color: #fff; font-size: 13px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px;
+}
+
+.alert { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; display: none; }
+.alert.show { display: block; }
+.alert-error { background: #fce8e6; color: var(--danger); }
+.alert-success { background: #e6f4ea; color: var(--success); }
+
+.history-item {
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 8px;
+}
+.history-item .top-row { display: flex; justify-content: space-between; align-items: center; }
+.history-item .supplier-name { font-size: 14px; font-weight: 600; }
+.history-item .amount { font-size: 14px; font-weight: 700; color: var(--primary); }
+.history-item .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+.empty-state { text-align: center; padding: 24px 16px; color: var(--text-muted); font-size: 13px; }
+.loading, .error-box { text-align: center; padding: 40px 16px; color: var(--text-muted); }
+.error-box { color: var(--danger); }
+
+.update-banner {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  padding: 10px 14px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  background: var(--primary); color: #fff; font-size: 13px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; z-index: 30;
+}
+.update-banner button { background: #fff; color: var(--primary); border: none; border-radius: 6px; padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+
+.purchase-screen { background: var(--purchase-screen-bg); color: var(--purchase-text); }
+.purchase-screen .purchase-register { background: var(--purchase-register-bg); }
+.purchase-screen .purchase-register-meta { color: var(--purchase-text-muted); }
+.purchase-screen .purchase-register-meta .eyebrow { color: var(--primary); }
+.purchase-screen .purchase-register-meta strong { color: var(--purchase-text-strong); }
+.purchase-screen .purchase-register-meta small { color: var(--purchase-text-soft); }
+.purchase-screen .purchase-active-display { border-color: var(--purchase-active-border); background: var(--purchase-active-gradient); }
+.purchase-screen .purchase-search-wrap input,
+.purchase-screen .purchase-search-result,
+.purchase-screen .purchase-supplier-content .field input,
+.purchase-screen .purchase-supplier-content .field select,
+.purchase-screen .purchase-discount-row input,
+.purchase-screen .purchase-sales-table-wrap,
+.purchase-screen .purchase-sales-table input,
+.purchase-screen .purchase-sales-table .qty-control button { border-color: var(--purchase-control-border); background: var(--purchase-control-bg); color: var(--purchase-text); }
+.purchase-screen .purchase-search-wrap input:focus { border-color: var(--primary); }
+.purchase-screen .purchase-search-icon,
+.purchase-screen .purchase-search-shortcut,
+.purchase-screen .purchase-search-result small,
+.purchase-screen .purchase-search-empty,
+.purchase-screen .purchase-dock-heading span,
+.purchase-screen .purchase-table-heading span,
+.purchase-screen .purchase-supplier-content .field label,
+.purchase-screen .purchase-discount-card > span,
+.purchase-screen .purchase-line-meta { color: var(--purchase-text-soft); }
+.purchase-screen .purchase-search-shortcut { border-color: var(--purchase-border); }
+.purchase-screen .purchase-search-result { border-bottom-color: var(--purchase-border); }
+.purchase-screen .purchase-search-result:hover { background: var(--purchase-panel); }
+.purchase-screen .purchase-search-result .result-price,
+.purchase-screen .purchase-product-price { color: var(--purchase-price); }
+.purchase-screen .purchase-sale-area { color: var(--purchase-text); }
+.purchase-screen .purchase-supplier-panel { background: var(--purchase-panel); }
+.purchase-screen .purchase-dock-heading { background: var(--purchase-panel-head); color: var(--purchase-text-strong); }
+.purchase-screen .purchase-discount-card { border-color: var(--purchase-border); background: var(--purchase-panel-card); }
+.purchase-screen .purchase-discount-card strong { color: var(--purchase-text-strong); }
+.purchase-screen .purchase-discount-row button { border-color: var(--purchase-discount); background: var(--purchase-discount); }
+.purchase-screen .purchase-discount-row button:hover { background: var(--purchase-discount-hover); }
+.purchase-screen .purchase-discount-card .clear-discount { color: var(--danger); }
+.purchase-screen .purchase-sales-table-wrap { border-color: var(--purchase-border); background: var(--purchase-table-bg); }
+.purchase-screen .purchase-table-heading { border-bottom-color: var(--purchase-border); background: var(--purchase-panel-head); color: var(--purchase-text-strong); }
+.purchase-screen .purchase-sales-table th { background: var(--purchase-table-head); }
+.purchase-screen .purchase-sales-table td { border-bottom-color: var(--purchase-border); color: var(--purchase-text); }
+.purchase-screen .purchase-sales-table tbody tr:nth-child(even) td { background: var(--purchase-row-alt); }
+.purchase-screen .purchase-sales-table .purchase-line-name { color: var(--purchase-text-strong); }
+.purchase-screen .purchase-sales-table .purchase-discount-cell { color: var(--purchase-discount-text); }
+.purchase-screen .purchase-sales-table .qty-control button { color: var(--purchase-text-strong); }
+.purchase-screen .purchase-cart-empty { color: var(--purchase-text-muted); }
+.purchase-screen .purchase-cart-empty small { color: var(--purchase-text-soft); }
+.purchase-screen .purchase-register-footer { border-top-color: var(--purchase-border); background: var(--purchase-footer-bg); }
+.purchase-screen .purchase-footer-status,
+.purchase-screen .purchase-footer-totals { color: var(--purchase-footer-text); }
+.purchase-screen .purchase-footer-status strong,
+.purchase-screen .purchase-footer-totals strong,
+.purchase-screen .purchase-footer-totals .footer-total { color: var(--purchase-text-strong); }
+.purchase-screen .purchase-footer-status small { color: var(--purchase-text-soft); }
+.purchase-screen .purchase-footer-totals .footer-total { border-left-color: var(--purchase-border); }
+.purchase-screen .purchase-save-btn { background: var(--purchase-discount); }
+.purchase-screen .purchase-save-btn:hover:not(:disabled) { background: var(--purchase-discount-hover); }
+</style>
+<link rel="stylesheet" href="app-navigation.css" />
+<script src="app-navigation.js" defer></script>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand"><span class="brand-mark">S</span><span class="brand-copy"><strong>SmarterERP</strong><small>Business management</small></span></div>
+    <div class="sidebar-label">Workspace</div>
+    <nav class="sidebar-nav" id="sidebarNav" aria-label="Navigasi utama"></nav>
+    <div class="sidebar-footer">Sistem manajemen toko</div>
+  </aside>
+  <div class="workspace">
+    <header class="page-topbar">
+      <div class="page-title">Pembelian</div>
+      <div class="topbar-actions">
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" onclick="toggleSidebar()" aria-label="Tutup sidebar" aria-expanded="true" title="Tutup sidebar">☰</button>
+        <div class="status-row"><span class="status-dot" id="onlineDot"></span><span id="onlineText">Online</span></div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Ubah tema">🌙</button>
+        <button class="logout-btn" onclick="logoutUser()">Keluar</button>
+      </div>
+    </header>
+    <div class="subtabs">
+      <button class="subtab-btn active" id="tabFormBtn" onclick="switchSubtab('form')">Pembelian Baru</button>
+      <button class="subtab-btn" id="tabHistoryBtn" onclick="switchSubtab('history')">Histori</button>
+    </div>
+    <main class="page-content">
+      <div class="container" id="mainContent"><div class="loading">Memuat...</div></div>
+    </main>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://icqabcbjhmzytvajtfst.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljcWFiY2JqaG16eXR2YWp0ZnN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4OTU2NjcsImV4cCI6MjEwNTQ3MTY2N30.h-ui5M9g5EKFVl6TrT_iSM1W4yErgpDKyv3BIzUTt-U";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ---------------------------------------------------------
+// SHARED HELPERS
+// ---------------------------------------------------------
+const APP_VERSION = "2026-10-07-02";
+
+const APP_MENUS = [
+  { title: "POS Penjualan", icon: "🧾", href: "pos-penjualan.html", roles: ["admin_organisasi", "admin_toko", "kasir"] },
+  { title: "Penjualan", icon: "💰", href: "penjualan.html", roles: ["admin_organisasi", "admin_toko"] },
+  { title: "Stok", icon: "📦", href: "stok.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Pembelian", icon: "🛒", href: "pembelian.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Transfer Stok", icon: "🔄", href: "transfer-stok.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Stok Opname", icon: "📋", href: "stok-opname.html", roles: ["admin_organisasi", "admin_toko", "staff_gudang"] },
+  { title: "Laporan", icon: "📊", href: "laporan.html", roles: ["admin_organisasi", "admin_toko"] },
+  { title: "Master Barang", icon: "🏷️", href: "menu.html", roles: ["admin_organisasi", "admin_toko"] },
+  { title: "Daftar Toko", icon: "🏬", href: "daftar-toko.html", roles: ["super_admin", "admin_organisasi"] },
+  { title: "Pengguna", icon: "👥", href: "pengguna.html", roles: ["super_admin", "admin_organisasi", "admin_toko"] },
+];
+
+function initAppShell() {
+  const role = sessionStorage.getItem("smarterp_role");
+  const currentPage = window.location.pathname.split("/").pop();
+  const isShiftHolder = ["kepala_toko", "asisten_toko", "merchandiser"].includes(role);
+  const links = [{ title: "Dashboard", icon: "⌂", href: "dashboard.html" }, ...APP_MENUS.filter(menu => !role || menu.roles.includes(role) || (isShiftHolder && menu.href !== "daftar-toko.html"))];
+  document.getElementById("sidebarNav").innerHTML = links.map(menu => `
+    <a class="nav-item ${menu.href === currentPage ? "active" : ""}" href="${menu.href}" ${menu.href === currentPage ? 'aria-current="page"' : ""}>
+      <span class="nav-icon">${menu.icon}</span><span class="nav-text">${menu.title}</span>
+    </a>
+  `).join("");
+}
+
+function toggleSidebar() {
+  const shell = document.querySelector(".app-shell");
+  const button = document.getElementById("sidebarToggleBtn");
+  const isMobile = window.matchMedia("(max-width: 640px)").matches;
+  const isOpen = isMobile
+    ? shell.classList.toggle("sidebar-open")
+    : (shell.classList.toggle("sidebar-collapsed"), !shell.classList.contains("sidebar-collapsed"));
+  button.setAttribute("aria-expanded", String(isOpen));
+  button.setAttribute("aria-label", isOpen ? "Tutup sidebar" : "Buka sidebar");
+  button.title = isOpen ? "Tutup sidebar" : "Buka sidebar";
+}
+initAppShell();
+
+function applyThemeIcon() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const btn = document.getElementById('themeToggleBtn');
+  if (!btn) return;
+  btn.textContent = current === 'dark' ? '☀️' : '🌙';
+}
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  let next;
+  if (!current) next = 'light';
+  else if (current === 'light') next = 'dark';
+  else next = null;
+  if (next) { html.setAttribute('data-theme', next); localStorage.setItem('smarterp_theme', next); }
+  else { html.removeAttribute('data-theme'); localStorage.removeItem('smarterp_theme'); }
+  applyThemeIcon();
+}
+function updateOnlineStatus() {
+  const dot = document.getElementById('onlineDot');
+  const text = document.getElementById('onlineText');
+  if (!dot || !text) return;
+  const online = navigator.onLine;
+  dot.style.background = online ? 'var(--success)' : 'var(--danger)';
+  text.textContent = online ? 'Online' : 'Offline';
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+async function checkForUpdate() {
+  if (!navigator.onLine) return;
+  try {
+    const res = await fetch(window.location.pathname + '?_=' + Date.now(), { cache: 'no-store' });
+    const html = await res.text();
+    const match = html.match(/app-version"\s+content="([^"]+)"/);
+    if (match && match[1] !== APP_VERSION) showUpdateBanner();
+  } catch (e) {}
+}
+function showUpdateBanner() {
+  if (document.getElementById('updateBanner')) return;
+  const b = document.createElement('div');
+  b.id = 'updateBanner'; b.className = 'update-banner';
+  b.innerHTML = 'Ada pembaruan halaman ini. <button onclick="location.reload()">Muat ulang</button>';
+  document.body.appendChild(b);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
+window.addEventListener('focus', checkForUpdate);
+setInterval(checkForUpdate, 60000);
+document.addEventListener('DOMContentLoaded', () => { applyThemeIcon(); updateOnlineStatus(); });
+
+async function requireLogin() {
+  const { data } = await supabaseClient.auth.getSession();
+  if (!data.session) { window.location.href = "index.html"; return null; }
+  return data.session;
+}
+async function logoutUser() {
+  await supabaseClient.auth.signOut();
+  sessionStorage.clear();
+  window.location.href = "index.html";
+}
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str || "";
+  return div.innerHTML;
+}
+function formatRupiahInput(el) {
+  const raw = el.value.replace(/[^\d]/g, "");
+  el.value = raw === "" ? "" : Number(raw).toLocaleString("id-ID");
+}
+function getRawNumber(el) {
+  return parseFloat((el.value || "0").replace(/[^\d]/g, "")) || 0;
+}
+function rp(n) { return "Rp " + Number(n || 0).toLocaleString("id-ID"); }
+function generateInvoiceNumber() {
+  const rand = Math.floor(100000 + Math.random() * 900000); // selalu 6 digit
+  return "INV-" + rand;
+}
+
+// ---------------------------------------------------------
+// HALAMAN PEMBELIAN
+// ---------------------------------------------------------
+let myRole = null;
+let myOrgId = null;
+let myStoreId = null;
+let activeStoreId = null;
+let activeTab = "form";
+let suppliersCache = [];
+let itemsCache = [];
+let storesCache = [];
+let selectedSupplierId = null;
+let rows = []; // {item_id, qty, price}
+let purchaseDiscount = 0;
+let catalogQuery = "";
+let catalogFocused = false;
+let activePurchaseItemId = null;
+
+function renderError(message) {
+  document.getElementById("mainContent").innerHTML = `<div class="error-box">${message}</div>`;
+}
+
+function switchSubtab(tab) {
+  activeTab = tab;
+  document.getElementById("tabFormBtn").classList.toggle("active", tab === "form");
+  document.getElementById("tabHistoryBtn").classList.toggle("active", tab === "history");
+  if (tab === "form") renderFormTab();
+  else loadHistoryTab();
+}
+
+// ---------- FORM PEMBELIAN BARU (gaya invoice) ----------
+function itemsForSupplier() {
+  return itemsCache.filter(it => it.supplier_id === selectedSupplierId);
+}
+
+function renderProductCatalog() {
+  const avail = itemsForSupplier();
+  const panel = document.getElementById("productGrid");
+  if (!panel) return;
+
+  if (avail.length === 0 || (!catalogFocused && !catalogQuery.trim())) {
+    panel.hidden = true;
+    panel.innerHTML = avail.length === 0
+      ? `<div class="purchase-search-empty">Supplier ini belum memiliki barang.</div>`
+      : "";
+    return;
+  }
+
+  const query = catalogQuery.trim().toLocaleLowerCase("id-ID");
+  const filtered = avail.filter(item => `${item.plu} ${item.barcode || ""} ${item.name}`.toLocaleLowerCase("id-ID").includes(query)).slice(0, 20);
+  panel.hidden = false;
+  panel.innerHTML = filtered.length
+    ? filtered.map(item => `
+        <button type="button" class="purchase-search-result" role="option" onclick="addCatalogItem('${item.id}')">
+          <strong>${escapeHtml(item.name)}</strong>
+          <small>${escapeHtml(item.plu)}${item.barcode ? ` · ${escapeHtml(item.barcode)}` : ""} · /${item.purchase_unit ? escapeHtml(item.purchase_unit.code) : "unit"}</small>
+          <span class="result-price">${rp(item.purchase_price)}</span>
+        </button>
+      `).join("")
+    : `<div class="purchase-search-empty">Barang tidak ditemukan.</div>`;
+}
+
+function filterCatalog(query) {
+  catalogQuery = query;
+  catalogFocused = true;
+  renderProductCatalog();
+}
+
+function openPurchaseCatalog() {
+  catalogFocused = true;
+  renderProductCatalog();
+}
+
+function handlePurchaseSearchKeydown(event) {
+  if (event.key !== "Enter") return;
+  const firstResult = document.querySelector(".purchase-search-result");
+  if (firstResult) {
+    event.preventDefault();
+    firstResult.click();
+  }
+}
+
+function addCatalogItem(itemId) {
+  const item = itemsCache.find(candidate => candidate.id === itemId);
+  if (!item || item.supplier_id !== selectedSupplierId) return;
+  activePurchaseItemId = itemId;
+  const existing = rows.find(r => r.item_id === itemId);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    rows.push({ item_id: item.id, qty: 1, price: Number(item.purchase_price) || 0 });
+  }
+  catalogQuery = "";
+  catalogFocused = false;
+  const search = document.getElementById("purchaseSearchInput");
+  if (search) search.value = "";
+  renderProductCatalog();
+  renderInvoiceTable();
+}
+
+function updatePurchaseQty(index, value) {
+  const row = rows[index];
+  if (!row) return;
+  const nextQty = Number(value);
+  if (!Number.isFinite(nextQty) || nextQty <= 0) {
+    renderInvoiceTable();
+    return;
+  }
+  row.qty = nextQty;
+  renderInvoiceTable();
+}
+
+function updatePurchaseDiscount(value) {
+  const parsed = Number(value);
+  purchaseDiscount = Number.isFinite(parsed) ? Math.min(100, Math.max(0, parsed)) : 0;
+  const label = document.getElementById("purchaseDiscountLabel");
+  if (label) label.textContent = purchaseDiscount > 0 ? `Diskon ${purchaseDiscount}% diterapkan` : "Belum ada diskon";
+}
+
+function applyPurchaseDiscount() {
+  const input = document.getElementById("purchaseDiscountInput");
+  updatePurchaseDiscount(input ? input.value : 0);
+  if (input) input.value = String(purchaseDiscount);
+  renderInvoiceTable();
+}
+
+function clearPurchaseDiscount() {
+  purchaseDiscount = 0;
+  const input = document.getElementById("purchaseDiscountInput");
+  if (input) input.value = "0";
+  const label = document.getElementById("purchaseDiscountLabel");
+  if (label) label.textContent = "Belum ada diskon";
+  renderInvoiceTable();
+}
+
+function focusPurchaseSearch() {
+  document.getElementById("purchaseSearchInput")?.focus();
+}
+
+function focusPurchaseSupplier() {
+  document.getElementById("f_supplier")?.focus();
+}
+
+function focusPurchaseDiscount() {
+  document.getElementById("purchaseDiscountInput")?.focus();
+}
+
+function clearPurchaseCart() {
+  if (rows.length && !confirm("Kosongkan semua barang dari faktur pembelian?")) return;
+  rows = [];
+  activePurchaseItemId = null;
+  renderInvoiceTable();
+}
+
+function removeRow(idx) {
+  rows.splice(idx, 1);
+  activePurchaseItemId = rows.length ? rows[rows.length - 1].item_id : null;
+  renderInvoiceTable();
+}
+
+function renderInvoiceTable() {
+  const container = document.getElementById("invoiceTableContainer");
+  if (!container) return;
+
+  if (rows.length === 0) {
+    container.innerHTML = "";
+  } else {
+    const rowsHtml = rows.map((row, idx) => {
+      const item = itemsCache.find(it => it.id === row.item_id);
+      const purchUnit = item && item.purchase_unit ? item.purchase_unit.code : "";
+      const subtotal = row.qty * row.price;
+      return `
+        <tr>
+          <td class="purchase-line-plu">${item ? escapeHtml(item.plu) : "-"}</td>
+          <td>
+            <div class="purchase-line-name">${item ? escapeHtml(item.name) : "-"}</div>
+            <div class="purchase-line-meta purchase-line-mobile-plu">PLU ${item ? escapeHtml(item.plu) : "-"}</div>
+          </td>
+          <td class="num">${rp(row.price)}</td>
+          <td><div class="purchase-qty-control"><input class="purchase-qty-input" aria-label="Qty beli ${item ? escapeHtml(item.name) : "barang"}" type="number" min="0.0001" step="any" value="${row.qty}" onchange="updatePurchaseQty(${idx},this.value)" /><span class="purchase-qty-unit">${escapeHtml(purchUnit)}</span></div></td>
+          <td class="purchase-discount-cell">${purchaseDiscount}%<div>${rp(row.qty * row.price * purchaseDiscount / 100)}</div></td>
+          <td class="num">${rp(subtotal - subtotal * purchaseDiscount / 100)}</td>
+          <td><button type="button" class="remove-line" aria-label="Hapus ${item ? escapeHtml(item.name) : "barang"}" onclick="removeRow(${idx})">🗑️</button></td>
+        </tr>
+      `;
+    }).join("");
+
+    container.innerHTML = `
+      <table class="purchase-sales-table">
+        <thead><tr><th>PLU</th><th>Nama barang</th><th>Harga beli</th><th>Qty beli</th><th>Diskon</th><th class="num">Jumlah</th><th></th></tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+  }
+
+  const empty = document.getElementById("purchaseCartEmpty");
+  if (empty) empty.hidden = rows.length > 0;
+  updatePurchaseSummary();
+}
+
+function updatePurchaseSummary() {
+  const subtotal = rows.reduce((sum, row) => sum + (row.qty * row.price), 0);
+  const discount = subtotal * purchaseDiscount / 100;
+  const total = subtotal - discount;
+  const subtotalElement = document.getElementById("subtotalValue");
+  const discountElement = document.getElementById("discountValue");
+  const grandTotal = document.getElementById("grandTotal");
+  const cartCount = document.getElementById("purchaseCartCount");
+  const totalDisplay = document.getElementById("purchaseTotalDisplay");
+  const activeItem = itemsCache.find(item => item.id === activePurchaseItemId);
+  const activeName = document.getElementById("purchaseActiveItemName");
+  const activePrice = document.getElementById("purchaseActiveItemPrice");
+  const submitButton = document.getElementById("submitBtn");
+  if (subtotalElement) subtotalElement.textContent = rp(subtotal);
+  if (discountElement) discountElement.textContent = `- ${rp(discount)}`;
+  if (grandTotal) grandTotal.textContent = rp(total);
+  if (cartCount) cartCount.textContent = `${rows.length} jenis barang`;
+  if (totalDisplay) totalDisplay.textContent = rp(total);
+  if (activeName) activeName.textContent = activeItem ? activeItem.name : "Cari barang atau scan barcode";
+  if (activePrice) activePrice.textContent = activeItem ? `${rp(activeItem.purchase_price)} per ${activeItem.purchase_unit ? activeItem.purchase_unit.code : "unit"}` : "Harga beli tampil di sini";
+  if (submitButton) submitButton.disabled = rows.length === 0;
+}
+
+// ---------- SCAN BARCODE ----------
+let scannerStream = null;
+let scannerLoopActive = false;
+
+async function openScanner() {
+  if (!("BarcodeDetector" in window)) {
+    alert("Scan barcode gak didukung di browser ini. Pilih barang manual dari dropdown ya.");
+    return;
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "scannerOverlay";
+  overlay.className = "scanner-overlay";
+  overlay.innerHTML = `
+    <button class="scanner-close" onclick="closeScanner()">✕</button>
+    <video id="scannerVideo" class="scanner-video" autoplay playsinline muted></video>
+    <div class="scanner-hint">Arahkan kamera ke barcode barang</div>
+  `;
+  document.body.appendChild(overlay);
+
+  try {
+    scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    const video = document.getElementById("scannerVideo");
+    video.srcObject = scannerStream;
+
+    const detector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code"] });
+    scannerLoopActive = true;
+    scanLoop(video, detector);
+  } catch (err) {
+    alert("Gagal mengakses kamera: " + err.message);
+    closeScanner();
+  }
+}
+
+async function scanLoop(video, detector) {
+  if (!scannerLoopActive) return;
+  try {
+    const codes = await detector.detect(video);
+    if (codes.length > 0) {
+      onBarcodeDetected(codes[0].rawValue);
+      return;
+    }
+  } catch (e) { /* frame belum siap, lanjut coba lagi */ }
+  requestAnimationFrame(() => scanLoop(video, detector));
+}
+
+function onBarcodeDetected(code) {
+  closeScanner();
+  const item = itemsCache.find(it => it.barcode && it.barcode === code);
+  if (!item) {
+    alert("Barcode " + code + " gak ketemu di data barang.");
+    return;
+  }
+  if (item.supplier_id !== selectedSupplierId) {
+    const owner = suppliersCache.find(s => s.id === item.supplier_id);
+    alert(`Barang "${item.name}" terdaftar di supplier ${owner ? owner.name : "lain"}, bukan supplier yang lagi aktif.`);
+    return;
+  }
+  addCatalogItem(item.id);
+}
+
+function closeScanner() {
+  scannerLoopActive = false;
+  if (scannerStream) {
+    scannerStream.getTracks().forEach(t => t.stop());
+    scannerStream = null;
+  }
+  const overlay = document.getElementById("scannerOverlay");
+  if (overlay) overlay.remove();
+}
+
+function renderFormTab() {
+  if (suppliersCache.length === 0 || itemsCache.length === 0) {
+    document.getElementById("mainContent").innerHTML = `<div class="empty-state">Lengkapi dulu Supplier & Barang di Master Barang sebelum bisa mencatat pembelian.</div>`;
+    return;
+  }
+
+  if (!selectedSupplierId) selectedSupplierId = suppliersCache[0].id;
+  const invoiceNumber = generateInvoiceNumber();
+
+  const storeFieldHtml = (myRole === "admin_organisasi" || myRole === "super_admin") ? `
+    <div class="field">
+      <label>Toko</label>
+      <select id="f_store">
+        ${storesCache.map(s => `<option value="${s.id}" ${s.id === activeStoreId ? "selected" : ""}>${s.store_code} - ${escapeHtml(s.name)}</option>`).join("")}
+      </select>
+    </div>
+  ` : "";
+
+  document.getElementById("mainContent").innerHTML = `
+    <section class="purchase-screen">
+      <nav class="purchase-quick-rail" aria-label="Aksi pembelian">
+        <button type="button" onclick="focusPurchaseSearch()"><span>▦</span><small>Cari</small></button>
+        <button type="button" onclick="openScanner()"><span>▣</span><small>Scan</small></button>
+        <button type="button" onclick="focusPurchaseSupplier()"><span>♙</span><small>Pemasok</small></button>
+        <button type="button" onclick="focusPurchaseDiscount()"><span>%</span><small>Diskon</small></button>
+        <button type="button" onclick="switchSubtab('history')"><span>↶</span><small>Histori</small></button>
+        <button class="cancel-action" type="button" onclick="clearPurchaseCart()"><span>×</span><small>Batal</small></button>
+      </nav>
+      <section class="purchase-register" aria-label="Transaksi pembelian">
+        <div class="purchase-register-header">
+          <div class="purchase-register-meta">
+            <p class="eyebrow">Pembelian · Penerimaan</p>
+            <strong id="purchaseHeaderSupplier">${escapeHtml(suppliersCache.find(supplier => supplier.id === selectedSupplierId)?.name || "Pilih pemasok")}</strong>
+            <small>Tanggal ${new Date().toLocaleDateString("id-ID")}</small>
+          </div>
+          <div class="purchase-active-display">
+            <div class="purchase-active-item"><small>ITEM AKTIF</small><strong id="purchaseActiveItemName">Cari barang atau scan barcode</strong><span id="purchaseActiveItemPrice">Harga beli tampil di sini</span></div>
+            <strong class="purchase-active-total" id="purchaseTotalDisplay">Rp 0</strong>
+          </div>
+        </div>
+        <div id="alertBox" class="alert purchase-alert"></div>
+        <div class="purchase-entry-tools">
+          <div class="purchase-search-wrap">
+            <span class="purchase-search-icon" aria-hidden="true">⌕</span>
+            <input type="search" id="purchaseSearchInput" placeholder="Scan barcode atau cari nama / PLU" autocomplete="off" aria-label="Cari barang pembelian" aria-controls="productGrid" aria-autocomplete="list" oninput="filterCatalog(this.value)" onfocus="openPurchaseCatalog()" onkeydown="handlePurchaseSearchKeydown(event)" />
+            <span class="purchase-search-shortcut">F2</span>
+            <div class="purchase-search-results" id="productGrid" role="listbox" aria-label="Hasil pencarian barang" hidden></div>
+          </div>
+          <button type="button" class="purchase-scan-btn" onclick="focusPurchaseSearch()" title="Cari barang"><span class="scan-icon">▦</span><span class="scan-label">Cari Barang</span></button>
+        </div>
+        <div class="purchase-sale-area">
+          <section class="purchase-supplier-panel" aria-label="Pemasok dan diskon pembelian">
+            <div class="purchase-dock-heading"><strong>Pemasok &amp; Promo</strong><span>DOKUMEN</span></div>
+            <div class="purchase-supplier-content">
+              <div class="field"><label for="f_supplier">Pemasok aktif</label><select id="f_supplier" onchange="onChangeSupplierForm(this.value)">${suppliersCache.map(s => `<option value="${s.id}" ${s.id === selectedSupplierId ? "selected" : ""}>${escapeHtml(s.supplier_code)} - ${escapeHtml(s.name)}</option>`).join("")}</select></div>
+              ${storeFieldHtml}
+              <div class="field"><label for="f_date">Tanggal</label><input type="date" id="f_date" value="${new Date().toISOString().slice(0,10)}" /></div>
+              <div class="field"><label for="f_invoice">No. Faktur</label><input type="text" id="f_invoice" value="${invoiceNumber}" /></div>
+              <div class="purchase-discount-card"><span>PROMO PEMASOK</span><strong id="purchaseDiscountLabel">${purchaseDiscount > 0 ? `Diskon ${purchaseDiscount}% diterapkan` : "Belum ada diskon"}</strong><div class="purchase-discount-row"><input type="number" id="purchaseDiscountInput" min="0" max="100" step="0.01" value="${purchaseDiscount}" aria-label="Persentase diskon pembelian" /><button type="button" onclick="applyPurchaseDiscount()">Terapkan</button></div><button class="clear-discount" type="button" onclick="clearPurchaseDiscount()">Hapus potongan</button></div>
+              <div class="field purchase-notes-field"><label for="f_notes">Catatan / promo</label><input type="text" id="f_notes" placeholder="Opsional" /></div>
+            </div>
+          </section>
+          <section class="purchase-sales-table-wrap" aria-label="Daftar transaksi pembelian">
+            <div class="purchase-table-heading"><strong>Daftar transaksi</strong><span id="purchaseCartCount">0 barang</span></div>
+            <div id="invoiceTableContainer"></div>
+            <div id="purchaseCartEmpty" class="purchase-cart-empty"><strong>Belum ada barang</strong><small>Cari atau scan barang untuk menambahkan ke transaksi.</small></div>
+          </section>
+        </div>
+        <footer class="purchase-register-footer">
+          <div class="purchase-footer-status"><strong id="purchaseFooterSupplier">${escapeHtml(suppliersCache.find(supplier => supplier.id === selectedSupplierId)?.name || "Pilih pemasok")}</strong><span> · </span><span id="purchaseFooterInvoice">${escapeHtml(invoiceNumber)}</span><small>Stok bertambah setelah pembelian disimpan.</small></div>
+          <div class="purchase-footer-totals"><span>Subtotal<strong id="subtotalValue">Rp 0</strong></span><span>Total diskon<strong id="discountValue">Rp 0</strong></span><span class="footer-total">TOTAL<strong id="grandTotal">Rp 0</strong></span></div>
+          <button class="purchase-save-btn" id="submitBtn" type="button" onclick="onSubmitPurchase()" disabled>Simpan Pembelian</button>
+        </footer>
+      </section>
+    </section>
+  `;
+
+  catalogQuery = "";
+  catalogFocused = false;
+  renderProductCatalog();
+  renderInvoiceTable();
+}
+
+function onChangeSupplierForm(id) {
+  if (id === selectedSupplierId) return;
+  if (rows.length > 0 && !confirm("Mengganti pemasok akan mengosongkan faktur saat ini. Lanjutkan?")) {
+    document.getElementById("f_supplier").value = selectedSupplierId;
+    return;
+  }
+  selectedSupplierId = id;
+  rows = [];
+  purchaseDiscount = 0;
+  catalogQuery = "";
+  catalogFocused = false;
+  const search = document.getElementById("purchaseSearchInput");
+  if (search) search.value = "";
+  renderProductCatalog();
+  renderInvoiceTable();
+  const supplier = suppliersCache.find(item => item.id === id);
+  const footerSupplier = document.getElementById("purchaseFooterSupplier");
+  const headerSupplier = document.getElementById("purchaseHeaderSupplier");
+  if (footerSupplier) footerSupplier.textContent = supplier ? supplier.name : "Pilih pemasok";
+  if (headerSupplier) headerSupplier.textContent = supplier ? supplier.name : "Pilih pemasok";
+  const discountInput = document.getElementById("purchaseDiscountInput");
+  if (discountInput) discountInput.value = "0";
+  const discountLabel = document.getElementById("purchaseDiscountLabel");
+  if (discountLabel) discountLabel.textContent = "Belum ada diskon";
+}
+
+async function onSubmitPurchase() {
+  const btn = document.getElementById("submitBtn");
+  const alertBox = document.getElementById("alertBox");
+  alertBox.className = "alert";
+
+  if (rows.length === 0) {
+    alertBox.textContent = "Tambah minimal 1 baris barang.";
+    alertBox.className = "alert show alert-error";
+    return;
+  }
+  for (const r of rows) {
+    if (!r.qty || r.qty <= 0) {
+      alertBox.textContent = "Qty semua baris harus lebih dari 0.";
+      alertBox.className = "alert show alert-error";
+      return;
+    }
+  }
+
+  btn.disabled = true; btn.textContent = "Menyimpan...";
+
+  const storeField = document.getElementById("f_store");
+  const storeId = storeField ? storeField.value : activeStoreId;
+  const notes = document.getElementById("f_notes").value.trim();
+  const purchaseNotes = purchaseDiscount > 0
+    ? [notes, `Diskon pembelian ${purchaseDiscount}%`].filter(Boolean).join(" | ")
+    : notes;
+
+  const payload = {
+    p_store_id: storeId,
+    p_supplier_id: document.getElementById("f_supplier").value,
+    p_purchase_date: document.getElementById("f_date").value,
+    p_invoice_number: document.getElementById("f_invoice").value.trim(),
+    p_notes: purchaseNotes,
+    p_items: rows.map(r => ({
+      item_id: r.item_id,
+      qty_purchase_unit: r.qty,
+      unit_price: Number((r.price * (1 - purchaseDiscount / 100)).toFixed(2)),
+    })),
+  };
+
+  const { error } = await supabaseClient.rpc("create_purchase", payload);
+  if (error) {
+    alertBox.textContent = error.message;
+    alertBox.className = "alert show alert-error";
+    btn.disabled = false; btn.textContent = "Simpan Pembelian";
+    return;
+  }
+
+  alertBox.textContent = "Pembelian berhasil disimpan, stok sudah bertambah.";
+  alertBox.className = "alert show alert-success";
+  btn.disabled = false; btn.textContent = "Simpan Pembelian";
+  rows = [];
+  purchaseDiscount = 0;
+  activePurchaseItemId = null;
+  document.getElementById("purchaseDiscountInput").value = "0";
+  document.getElementById("purchaseDiscountLabel").textContent = "Belum ada diskon";
+  renderInvoiceTable();
+}
+
+// ---------- HISTORI ----------
+async function loadHistoryTab() {
+  document.getElementById("mainContent").innerHTML = `<div class="loading">Memuat...</div>`;
+
+  let query = supabaseClient
+    .from("purchases")
+    .select("id, purchase_date, invoice_number, total_amount, notes, suppliers(name), stores(name, store_code)")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (myRole === "admin_toko" || myRole === "staff_gudang") {
+    query = query.eq("store_id", myStoreId);
+  }
+
+  const { data, error } = await query;
+  if (error) { renderError("Gagal memuat histori: " + error.message); return; }
+
+  const listHtml = (data || []).length === 0
+    ? `<div class="empty-state">Belum ada transaksi pembelian.</div>`
+    : data.map(p => `
+        <div class="history-item">
+          <div class="top-row">
+            <span class="supplier-name">${p.suppliers ? escapeHtml(p.suppliers.name) : "-"}</span>
+            <span class="amount">${rp(p.total_amount)}</span>
+          </div>
+          <div class="meta">${p.invoice_number ? escapeHtml(p.invoice_number) + " · " : ""}${p.purchase_date} · ${p.stores ? p.stores.store_code + " - " + escapeHtml(p.stores.name) : ""}</div>
+          ${p.notes ? `<div class="meta">${escapeHtml(p.notes)}</div>` : ""}
+        </div>
+      `).join("");
+
+  document.getElementById("mainContent").innerHTML = `
+    <div class="section-title">Histori Pembelian</div>
+    ${listHtml}
+  `;
+}
+
+// ---------- INIT ----------
+async function init() {
+  const session = await requireLogin();
+  if (!session) return;
+
+  const { data: profile, error } = await supabaseClient
+    .from("profiles").select("role, organization_id, store_id")
+    .eq("id", session.user.id).maybeSingle();
+  if (error || !profile) { renderError("Gagal memuat profil."); return; }
+
+  if (!["admin_organisasi", "admin_toko", "staff_gudang", "super_admin", "kepala_toko", "asisten_toko", "merchandiser"].includes(profile.role)) {
+    renderError("Kamu tidak punya akses ke halaman ini.");
+    return;
+  }
+
+  myRole = profile.role;
+  myOrgId = profile.organization_id;
+  myStoreId = profile.store_id;
+  activeStoreId = sessionStorage.getItem("smarterp_active_store_id") || myStoreId;
+
+  const [sup, it, st] = await Promise.all([
+    supabaseClient.from("suppliers").select("id, supplier_code, name").eq("organization_id", myOrgId).order("name"),
+    supabaseClient.from("items").select("id, plu, barcode, name, supplier_id, purchase_price, purchase_unit:units!items_purchase_unit_id_fkey(code)").eq("organization_id", myOrgId).order("plu"),
+    supabaseClient.from("stores").select("id, name, store_code").eq("organization_id", myOrgId).order("created_at"),
+  ]);
+  suppliersCache = sup.data || [];
+  itemsCache = it.data || [];
+  storesCache = st.data || [];
+
+  renderFormTab();
+}
+
+init();
+</script>
+
+</body>
+</html>
